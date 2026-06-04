@@ -9,7 +9,7 @@ import tseslint from 'typescript-eslint'
 export default defineConfig([
   globalIgnores(['dist']),
   {
-    files: ['*/.{ts,tsx}'],
+    files: ['**/*.{ts,tsx}'],
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
@@ -36,13 +36,13 @@ export default defineConfig([
     processor: checkFile.processors['eslint-processor-check-file'],
   },
   {
-    files: ['src/*/.*'],
+    files: ['src/**/*.*'],
     processor: checkFile.processors['eslint-processor-check-file'],
     rules: {
       'check-file/filename-naming-convention': [
         'error',
         {
-          'src/**/!(__root|routeTree.gen|_authenticated).{ts,tsx}': 'KEBAB_CASE',
+          'src/**': 'KEBAB_CASE',
         },
         {
           ignoreMiddleExtensions: true,
