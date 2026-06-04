@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+
+# Frontend pre-push
+if [ -d "frontend" ]; then
+  echo "Running frontend pre-push..."
+  cd frontend
+  pnpm run build
+  cd ..
+fi
+
+# Backend pre-push (future-proofing)
+if [ -d "backend" ]; then
+  echo "Running backend pre-push..."
+  cd backend
+  # pnpm run build (uncomment/modify when backend is ready)
+  cd ..
+fi

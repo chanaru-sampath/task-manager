@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "prepare": "husky"
+    "prepare": "cd .. && husky .husky"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",

@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+
+# Frontend pre-commit
+if [ -d "frontend" ]; then
+  echo "Running frontend pre-commit..."
+  cd frontend
+  pnpm lint-staged
+  cd ..
+fi
+
+# Backend pre-commit (future-proofing)
+if [ -d "backend" ]; then
+  echo "Running backend pre-commit..."
+  cd backend
+  # pnpm lint-staged (uncomment/modify when backend is ready)
+  cd ..
+fi
