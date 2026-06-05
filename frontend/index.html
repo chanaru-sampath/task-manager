@@ -4,7 +4,35 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A modern task management application. Add, edit, filter, and track your tasks with ease."
+    />
+    <meta name="color-scheme" content="light dark" />
     <title>Task Manager</title>
+    <script>
+      // Prevent flash of wrong theme by reading localStorage before first paint
+      ;(function () {
+        try {
+          var stored = JSON.parse(localStorage.getItem('task-manager-theme') || '{}')
+          var theme = stored.state && stored.state.theme
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark')
+            document.documentElement.style.colorScheme = 'dark'
+          } else if (theme === 'light') {
+            document.documentElement.style.colorScheme = 'light'
+          } else {
+            // system preference
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+              document.documentElement.classList.add('dark')
+              document.documentElement.style.colorScheme = 'dark'
+            } else {
+              document.documentElement.style.colorScheme = 'light'
+            }
+          }
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
