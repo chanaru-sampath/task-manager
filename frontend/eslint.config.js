@@ -51,7 +51,7 @@ export default defineConfig([
       'check-file/folder-naming-convention': [
         'error',
         {
-          'src/**': 'NEXT_JS_APP_ROUTER_CASE',
+          'src/**/!(__tests__)': 'NEXT_JS_APP_ROUTER_CASE',
         },
       ],
     },
