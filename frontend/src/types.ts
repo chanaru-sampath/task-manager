@@ -1,6 +1,6 @@
 export type Priority = 'low' | 'medium' | 'high'
 
-export type SortDirection = 'asc' | 'desc'
+type SortDirection = 'asc' | 'desc'
 
 export interface Task {
   id: string
