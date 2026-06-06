@@ -11,7 +11,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart'
-import { useTaskStore } from '@/store/task-store'
+import { useTasks } from '@/hooks/use-tasks'
 
 const completionChartConfig = {
   active: {
@@ -40,7 +40,7 @@ const priorityChartConfig = {
 } satisfies ChartConfig
 
 export const TaskStatistics = React.memo(function TaskStatistics() {
-  const tasks = useTaskStore((s) => s.tasks)
+  const tasks = useTasks().data ?? []
 
   const { completionData, priorityData, totalTasks } = useMemo(() => {
     let completedCount = 0

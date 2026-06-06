@@ -16,9 +16,10 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useCreateTask, useUpdateTask } from '@/hooks/use-tasks'
 import { todayIso } from '@/lib/local-date'
 import { type TaskFormData, newTaskFormSchema, taskFormSchema } from '@/schemas/task'
-import { PRIORITY_OPTIONS, useTaskStore } from '@/store/task-store'
+import { PRIORITY_OPTIONS } from '@/store/task-filter-store'
 import type { Task } from '@/types'
 
 interface TaskFormProps {
@@ -28,8 +29,8 @@ interface TaskFormProps {
 }
 
 export function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
-  const addTask = useTaskStore((s) => s.addTask)
-  const updateTask = useTaskStore((s) => s.updateTask)
+  const createTask = useCreateTask()
+  const updateTask = useUpdateTask()
   const titleRef = useRef<HTMLInputElement>(null)
 
   const isEditing = !!editingTask
@@ -71,14 +72,29 @@ export function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
   }, [editingTask, open, reset])
 
   function onSubmit(data: TaskFormData) {
-    if (isEditing) {
-      updateTask(editingTask.id, data)
-      toast.success('Task updated')
+    if (isEditing && editingTask) {
+      updateTask.mutate(
+        { id: editingTask.id, title: data.title, dueOn: data.dueOn, priority: data.priority },
+        {
+          onSuccess: () => {
+            toast.success('Task updated')
+            onOpenChange(false)
+          },
+          onError: () => toast.error('Failed to update task'),
+        }
+      )
     } else {
-      addTask(data)
-      toast.success('Task added')
+      createTask.mutate(
+        { title: data.title, dueOn: data.dueOn, priority: data.priority },
+        {
+          onSuccess: () => {
+            toast.success('Task added')
+            onOpenChange(false)
+          },
+          onError: () => toast.error('Failed to add task'),
+        }
+      )
     }
-    onOpenChange(false)
   }
 
   const { ref: titleFormRef, ...titleRegister } = register('title')

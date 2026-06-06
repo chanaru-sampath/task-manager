@@ -1,11 +1,17 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-react'
 
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { useTaskStore } from '@/store/task-store'
 import type { Task } from '@/types'
 
 import { Header } from '../header'
+
+const mockUseTasks = vi.fn()
+
+vi.mock('@/hooks/use-tasks', () => ({
+  useTasks: () => mockUseTasks(),
+}))
 
 let nextIndex = 1
 function makeTask(overrides: Partial<Task> = {}): Task {
@@ -21,22 +27,23 @@ function makeTask(overrides: Partial<Task> = {}): Task {
 }
 
 function Wrapper({ children }: { children: React.ReactNode }) {
-  return <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
-}
-
-function resetStore() {
-  useTaskStore.setState({
-    tasks: [],
-    filters: { status: 'all', priority: 'all', sortByDueDate: false, sortDirection: 'asc' },
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
   })
-  localStorage.clear()
+  return (
+    <QueryClientProvider client={client}>
+      <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
+    </QueryClientProvider>
+  )
 }
 
 beforeEach(() => {
   nextIndex = 1
-  resetStore()
+  mockUseTasks.mockReturnValue({ data: [] })
 })
-afterEach(resetStore)
+afterEach(() => {
+  vi.clearAllMocks()
+})
 
 describe('Header', () => {
   it('renders the app title', async () => {
@@ -50,8 +57,8 @@ describe('Header', () => {
   })
 
   it('shows "X of Y completed" when there are tasks', async () => {
-    useTaskStore.setState({
-      tasks: [makeTask({ completed: true }), makeTask({ completed: true }), makeTask({ completed: false })],
+    mockUseTasks.mockReturnValue({
+      data: [makeTask({ completed: true }), makeTask({ completed: true }), makeTask({ completed: false })],
     })
     const { getByText } = await render(<Header />, { wrapper: Wrapper })
     await expect.element(getByText('2 of 3 completed')).toBeInTheDocument()

@@ -1,11 +1,12 @@
 import { CheckCircle2, ListTodo } from 'lucide-react'
 
 import { ThemeToggle } from '@/components/theme-toggle'
-import { useTaskStore } from '@/store/task-store'
+import { useTasks } from '@/hooks/use-tasks'
 
 export function Header() {
-  const completedCount = useTaskStore((s) => s.tasks.filter((t) => t.completed).length)
-  const totalCount = useTaskStore((s) => s.tasks.length)
+  const tasks = useTasks().data ?? []
+  const completedCount = tasks.filter((t) => t.completed).length
+  const totalCount = tasks.length
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-lg">

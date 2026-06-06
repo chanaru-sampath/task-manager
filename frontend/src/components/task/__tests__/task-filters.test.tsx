@@ -3,7 +3,7 @@ import { render } from 'vitest-browser-react'
 import { page } from 'vitest/browser'
 
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { useTaskStore } from '@/store/task-store'
+import { useTaskFilterStore } from '@/store/task-filter-store'
 
 import { TaskFilters } from '../task-filters'
 
@@ -12,11 +12,9 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 }
 
 function resetStore() {
-  useTaskStore.setState({
-    tasks: [],
+  useTaskFilterStore.setState({
     filters: { status: 'all', priority: 'all', sortByDueDate: false, sortDirection: 'asc' },
   })
-  localStorage.clear()
 }
 
 beforeEach(resetStore)
@@ -44,38 +42,40 @@ describe('TaskFilters', () => {
     const { getByRole } = await render(<TaskFilters />, { wrapper: Wrapper })
     await getByRole('combobox', { name: 'Filter by status' }).click()
     await page.getByRole('option', { name: 'Active' }).click()
-    expect(useTaskStore.getState().filters.status).toBe('active')
+    expect(useTaskFilterStore.getState().filters.status).toBe('active')
   })
 
   it('clicking priority option "High" sets priority filter to "high"', async () => {
     const { getByRole } = await render(<TaskFilters />, { wrapper: Wrapper })
     await getByRole('combobox', { name: 'Filter by priority' }).click()
     await page.getByRole('option', { name: 'High' }).click()
-    expect(useTaskStore.getState().filters.priority).toBe('high')
+    expect(useTaskFilterStore.getState().filters.priority).toBe('high')
   })
 
   it('clicking the sort toggle enables sortByDueDate and reveals the direction toggle', async () => {
     const { getByRole } = await render(<TaskFilters />, { wrapper: Wrapper })
     expect(getByRole('button', { name: /Sort (ascending|descending)/ }).query()).toBeNull()
     await getByRole('button', { name: 'Sort by due date' }).click()
-    expect(useTaskStore.getState().filters.sortByDueDate).toBe(true)
+    expect(useTaskFilterStore.getState().filters.sortByDueDate).toBe(true)
     await expect.element(getByRole('button', { name: /Sort (ascending|descending)/ })).toBeInTheDocument()
   })
 
   it('clicking the direction toggle flips asc <-> desc', async () => {
-    useTaskStore.setState({ filters: { status: 'all', priority: 'all', sortByDueDate: true, sortDirection: 'asc' } })
+    useTaskFilterStore.setState({
+      filters: { status: 'all', priority: 'all', sortByDueDate: true, sortDirection: 'asc' },
+    })
     const { getByRole } = await render(<TaskFilters />, { wrapper: Wrapper })
     await getByRole('button', { name: /Sort (ascending|descending)/ }).click()
-    expect(useTaskStore.getState().filters.sortDirection).toBe('desc')
+    expect(useTaskFilterStore.getState().filters.sortDirection).toBe('desc')
   })
 
   it('clicking reset restores default filters', async () => {
-    useTaskStore.setState({
+    useTaskFilterStore.setState({
       filters: { status: 'completed', priority: 'high', sortByDueDate: true, sortDirection: 'desc' },
     })
     const { getByRole } = await render(<TaskFilters />, { wrapper: Wrapper })
     await getByRole('button', { name: 'Reset filters' }).click()
-    expect(useTaskStore.getState().filters).toEqual({
+    expect(useTaskFilterStore.getState().filters).toEqual({
       status: 'all',
       priority: 'all',
       sortByDueDate: false,
@@ -84,7 +84,7 @@ describe('TaskFilters', () => {
   })
 
   it('shows the reset button when at least one filter is active', async () => {
-    useTaskStore.setState({
+    useTaskFilterStore.setState({
       filters: { status: 'all', priority: 'all', sortByDueDate: true, sortDirection: 'asc' },
     })
     const { getByRole } = await render(<TaskFilters />, { wrapper: Wrapper })

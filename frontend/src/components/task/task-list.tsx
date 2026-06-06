@@ -22,8 +22,10 @@ import { TaskStatistics } from '@/components/task/task-statistics'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { useFilteredTasks } from '@/hooks/use-filtered-tasks'
+import { useDeleteTask, useReorderTask, useTasks, useUpdateTask } from '@/hooks/use-tasks'
+import { generateKeyBetween } from '@/lib/indexing'
 import { formatRelative, fromIso, isBeforeLocalDate, today } from '@/lib/local-date'
-import { useTaskStore } from '@/store/task-store'
+import { useTaskFilterStore } from '@/store/task-filter-store'
 import type { Task } from '@/types'
 
 import { VirtualizedList } from '../virtualize-list'
@@ -36,16 +38,20 @@ interface TaskDisplay {
 }
 
 export function TaskList() {
-  const hasTasks = useTaskStore((s) => s.tasks.length > 0)
-  const hasFilters = useTaskStore((s) => s.filters.status !== 'all' || s.filters.priority !== 'all')
+  const tasksQuery = useTasks()
+  const tasks = tasksQuery.data ?? []
 
-  const toggleComplete = useTaskStore((s) => s.toggleComplete)
-  const deleteTask = useTaskStore((s) => s.deleteTask)
-  const reorderTask = useTaskStore((s) => s.reorderTask)
-  const resetFilters = useTaskStore((s) => s.resetFilters)
-  const filters = useTaskStore((s) => s.filters)
+  const deleteTask = useDeleteTask()
+  const reorderTask = useReorderTask()
+  const updateTask = useUpdateTask()
+
+  const filters = useTaskFilterStore((s) => s.filters)
+  const resetFilters = useTaskFilterStore((s) => s.resetFilters)
 
   const filteredTasks = useFilteredTasks()
+
+  const hasTasks = tasks.length > 0
+  const hasFilters = filters.status !== 'all' || filters.priority !== 'all'
 
   const [formOpen, setFormOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
@@ -100,8 +106,10 @@ export function TaskList() {
 
   const handleDeleteConfirm = useCallback(() => {
     if (!deletingTask) return
-    deleteTask(deletingTask.id)
-    toast.success('Task deleted')
+    deleteTask.mutate(deletingTask.id, {
+      onSuccess: () => toast.success('Task deleted'),
+      onError: () => toast.error('Failed to delete task'),
+    })
     setDeletingTask(null)
   }, [deletingTask, deleteTask])
 
@@ -120,6 +128,20 @@ export function TaskList() {
     )
   }, [deletingTask])
 
+  const handleToggleComplete = useCallback(
+    (id: string) => {
+      const task = tasks.find((t) => t.id === id)
+      if (!task) return
+      updateTask.mutate(
+        { id, completed: !task.completed },
+        {
+          onError: () => toast.error('Failed to update task'),
+        }
+      )
+    },
+    [tasks, updateTask]
+  )
+
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       if (!canReorder) {
@@ -137,7 +159,10 @@ export function TaskList() {
         const prevTask = newTasks[newIndex - 1]
         const nextTask = newTasks[newIndex + 1]
 
-        reorderTask(active.id as string, prevTask?.index ?? null, nextTask?.index ?? null)
+        reorderTask.mutate({
+          id: active.id as string,
+          index: generateKeyBetween(prevTask?.index ?? null, nextTask?.index ?? null),
+        })
       }
     },
     [filteredTasks, reorderTask, canReorder]
@@ -201,34 +226,44 @@ export function TaskList() {
         </Accordion>
       ) : null}
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
-          {filteredTasks.length === 0 ? (
-            <TaskEmptyState hasFilters={hasFilters} />
-          ) : (
-            <VirtualizedList
-              items={filteredTasks}
-              getItemKey={(task) => task.id}
-              maxHeight="60vh"
-              estimatedItemHeight={ESTIMATED_ITEM_HEIGHT}
-              renderItem={(task) => {
-                const info = displayByTaskId.get(task.id) ?? { overdue: false, display: '' }
-                return (
-                  <TaskItem
-                    task={task}
-                    onEdit={handleEdit}
-                    onToggle={toggleComplete}
-                    onDeleteRequest={handleDeleteRequest}
-                    overdue={info.overdue}
-                    displayDate={info.display}
-                    isManualSort={canReorder}
-                  />
-                )
-              }}
-            />
-          )}
-        </SortableContext>
-      </DndContext>
+      {tasksQuery.isLoading ? (
+        <div className="rounded-lg border border-dashed border-border bg-card/50 px-4 py-12 text-center text-sm text-muted-foreground">
+          Loading tasks…
+        </div>
+      ) : tasksQuery.isError ? (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-12 text-center text-sm text-destructive">
+          Failed to load tasks. {(tasksQuery.error as Error)?.message ?? 'Unknown error'}
+        </div>
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+            {filteredTasks.length === 0 ? (
+              <TaskEmptyState hasFilters={hasFilters} />
+            ) : (
+              <VirtualizedList
+                items={filteredTasks}
+                getItemKey={(task) => task.id}
+                maxHeight="60vh"
+                estimatedItemHeight={ESTIMATED_ITEM_HEIGHT}
+                renderItem={(task) => {
+                  const info = displayByTaskId.get(task.id) ?? { overdue: false, display: '' }
+                  return (
+                    <TaskItem
+                      task={task}
+                      onEdit={handleEdit}
+                      onToggle={handleToggleComplete}
+                      onDeleteRequest={handleDeleteRequest}
+                      overdue={info.overdue}
+                      displayDate={info.display}
+                      isManualSort={canReorder}
+                    />
+                  )
+                }}
+              />
+            )}
+          </SortableContext>
+        </DndContext>
+      )}
 
       <button
         id="add-task-fab"

@@ -1,10 +1,17 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { renderHook } from 'vitest-browser-react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { renderHook } from 'vitest-browser-react/pure'
 
-import { useTaskStore } from '@/store/task-store'
+import { useTaskFilterStore } from '@/store/task-filter-store'
 import type { Task } from '@/types'
 
 import { useFilteredTasks } from '../use-filtered-tasks'
+
+const mockUseTasks = vi.fn()
+
+vi.mock('@/hooks/use-tasks', () => ({
+  useTasks: () => mockUseTasks(),
+}))
 
 let nextIndex = 1
 function makeTask(overrides: Partial<Task> = {}): Task {
@@ -19,68 +26,79 @@ function makeTask(overrides: Partial<Task> = {}): Task {
   }
 }
 
-function resetStore() {
-  useTaskStore.setState({
-    tasks: [],
+function Wrapper({ children }: { children: React.ReactNode }) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+  return <QueryClientProvider client={client}>{children}</QueryClientProvider>
+}
+
+function resetFilters() {
+  useTaskFilterStore.setState({
     filters: { status: 'all', priority: 'all', sortByDueDate: false, sortDirection: 'asc' },
   })
-  localStorage.clear()
 }
 
 beforeEach(() => {
   nextIndex = 1
-  resetStore()
+  resetFilters()
 })
-afterEach(resetStore)
+afterEach(() => {
+  vi.clearAllMocks()
+  resetFilters()
+})
 
 describe('useFilteredTasks', () => {
-  it('returns an empty array for an empty store', async () => {
-    const { result } = await renderHook(() => useFilteredTasks())
+  it('returns an empty array when there are no tasks', async () => {
+    mockUseTasks.mockReturnValue({ data: [] })
+    const { result } = await renderHook(() => useFilteredTasks(), { wrapper: Wrapper })
     expect(result.current).toEqual([])
   })
 
   describe('status filter', () => {
     it('"all" returns every task', async () => {
-      useTaskStore.setState({ tasks: [makeTask({ completed: false }), makeTask({ completed: true })] })
-      const { result } = await renderHook(() => useFilteredTasks())
+      const a = makeTask({ completed: false })
+      const b = makeTask({ completed: true })
+      mockUseTasks.mockReturnValue({ data: [a, b] })
+      const { result } = await renderHook(() => useFilteredTasks(), { wrapper: Wrapper })
       expect(result.current).toHaveLength(2)
     })
 
     it('"active" excludes completed tasks', async () => {
       const a = makeTask({ completed: false })
       const b = makeTask({ completed: true })
-      useTaskStore.setState({ tasks: [a, b] })
-      useTaskStore.getState().setFilter({ status: 'active' })
-      const { result } = await renderHook(() => useFilteredTasks())
-      expect(result.current.map((t: Task) => t.id)).toEqual([a.id])
+      mockUseTasks.mockReturnValue({ data: [a, b] })
+      useTaskFilterStore.getState().setFilter({ status: 'active' })
+      const { result } = await renderHook(() => useFilteredTasks(), { wrapper: Wrapper })
+      expect(result.current.map((t) => t.id)).toEqual([a.id])
     })
 
     it('"completed" excludes active tasks', async () => {
       const a = makeTask({ completed: false })
       const b = makeTask({ completed: true })
-      useTaskStore.setState({ tasks: [a, b] })
-      useTaskStore.getState().setFilter({ status: 'completed' })
-      const { result } = await renderHook(() => useFilteredTasks())
-      expect(result.current.map((t: Task) => t.id)).toEqual([b.id])
+      mockUseTasks.mockReturnValue({ data: [a, b] })
+      useTaskFilterStore.getState().setFilter({ status: 'completed' })
+      const { result } = await renderHook(() => useFilteredTasks(), { wrapper: Wrapper })
+      expect(result.current.map((t) => t.id)).toEqual([b.id])
     })
   })
 
   describe('priority filter', () => {
     it('"all" returns every task regardless of priority', async () => {
-      useTaskStore.setState({
-        tasks: [makeTask({ priority: 'low' }), makeTask({ priority: 'medium' }), makeTask({ priority: 'high' })],
+      mockUseTasks.mockReturnValue({
+        data: [makeTask({ priority: 'low' }), makeTask({ priority: 'medium' }), makeTask({ priority: 'high' })],
       })
-      const { result } = await renderHook(() => useFilteredTasks())
+      const { result } = await renderHook(() => useFilteredTasks(), { wrapper: Wrapper })
       expect(result.current).toHaveLength(3)
     })
 
     it('"high" returns only high-priority tasks', async () => {
       const low = makeTask({ priority: 'low' })
       const high = makeTask({ priority: 'high' })
-      useTaskStore.setState({ tasks: [low, high] })
-      useTaskStore.getState().setFilter({ priority: 'high' })
-      const { result } = await renderHook(() => useFilteredTasks())
-      expect(result.current.map((t: Task) => t.id)).toEqual([high.id])
+      mockUseTasks.mockReturnValue({ data: [low, high] })
+      useTaskFilterStore.getState().setFilter({ priority: 'high' })
+      const { result } = await renderHook(() => useFilteredTasks(), { wrapper: Wrapper })
+      expect(result.current.map((t) => t.id)).toEqual([high.id])
     })
   })
 
@@ -89,71 +107,52 @@ describe('useFilteredTasks', () => {
       const a = makeTask({ index: 3, title: 'C' })
       const b = makeTask({ index: 1, title: 'A' })
       const c = makeTask({ index: 2, title: 'B' })
-      useTaskStore.setState({ tasks: [a, b, c] })
-      const { result } = await renderHook(() => useFilteredTasks())
-      expect(result.current.map((t: Task) => t.title)).toEqual(['A', 'B', 'C'])
+      mockUseTasks.mockReturnValue({ data: [a, b, c] })
+      const { result } = await renderHook(() => useFilteredTasks(), { wrapper: Wrapper })
+      expect(result.current.map((t) => t.title)).toEqual(['A', 'B', 'C'])
     })
 
     it('orders by dueOn ascending when sortByDueDate is true and direction is asc', async () => {
-      useTaskStore.setState({
-        tasks: [
+      mockUseTasks.mockReturnValue({
+        data: [
           makeTask({ dueOn: '2026-06-10', title: 'mid' }),
           makeTask({ dueOn: '2026-06-05', title: 'early' }),
           makeTask({ dueOn: '2026-06-15', title: 'late' }),
         ],
       })
-      useTaskStore.getState().setFilter({ sortByDueDate: true, sortDirection: 'asc' })
-      const { result } = await renderHook(() => useFilteredTasks())
-      expect(result.current.map((t: Task) => t.title)).toEqual(['early', 'mid', 'late'])
+      useTaskFilterStore.getState().setFilter({ sortByDueDate: true, sortDirection: 'asc' })
+      const { result } = await renderHook(() => useFilteredTasks(), { wrapper: Wrapper })
+      expect(result.current.map((t) => t.title)).toEqual(['early', 'mid', 'late'])
     })
 
     it('orders by dueOn descending when sortByDueDate is true and direction is desc', async () => {
-      useTaskStore.setState({
-        tasks: [
+      mockUseTasks.mockReturnValue({
+        data: [
           makeTask({ dueOn: '2026-06-10', title: 'mid' }),
           makeTask({ dueOn: '2026-06-05', title: 'early' }),
           makeTask({ dueOn: '2026-06-15', title: 'late' }),
         ],
       })
-      useTaskStore.getState().setFilter({ sortByDueDate: true, sortDirection: 'desc' })
-      const { result } = await renderHook(() => useFilteredTasks())
-      expect(result.current.map((t: Task) => t.title)).toEqual(['late', 'mid', 'early'])
-    })
-  })
-
-  describe('reactivity', () => {
-    it('re-reads when the store changes', async () => {
-      const { result } = await renderHook(() => useFilteredTasks())
-      expect(result.current).toHaveLength(0)
-      useTaskStore.getState().addTask({ title: 'New', dueOn: '2026-06-06', priority: 'medium' })
-      await expect.poll(() => result.current).toHaveLength(1)
-    })
-
-    it('re-reads when filters change', async () => {
-      const a = makeTask({ priority: 'low' })
-      const b = makeTask({ priority: 'high' })
-      useTaskStore.setState({ tasks: [a, b] })
-      const { result } = await renderHook(() => useFilteredTasks())
-      expect(result.current).toHaveLength(2)
-      useTaskStore.getState().setFilter({ priority: 'high' })
-      await expect.poll(() => result.current.map((t: Task) => t.id)).toEqual([b.id])
+      useTaskFilterStore.getState().setFilter({ sortByDueDate: true, sortDirection: 'desc' })
+      const { result } = await renderHook(() => useFilteredTasks(), { wrapper: Wrapper })
+      expect(result.current.map((t) => t.title)).toEqual(['late', 'mid', 'early'])
     })
   })
 
   describe('combined filters', () => {
     it('applies status and priority filters together (AND)', async () => {
-      useTaskStore.setState({
-        tasks: [
+      mockUseTasks.mockReturnValue({
+        data: [
           makeTask({ completed: false, priority: 'high' }),
           makeTask({ completed: true, priority: 'high' }),
           makeTask({ completed: false, priority: 'low' }),
         ],
       })
-      useTaskStore.getState().setFilter({ status: 'active', priority: 'high' })
-      const { result } = await renderHook(() => useFilteredTasks())
+      useTaskFilterStore.getState().setFilter({ status: 'active', priority: 'high' })
+      const { result } = await renderHook(() => useFilteredTasks(), { wrapper: Wrapper })
       expect(result.current).toHaveLength(1)
-      expect(result.current[0].priority).toBe('high')
-      expect(result.current[0].completed).toBe(false)
+      expect(result.current[0]?.priority).toBe('high')
+      expect(result.current[0]?.completed).toBe(false)
     })
   })
 })

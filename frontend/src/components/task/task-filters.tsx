@@ -3,7 +3,7 @@ import { ArrowDownUp, ArrowDownWideNarrow, ArrowUpNarrowWide, RotateCcw } from '
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { useTaskStore } from '@/store/task-store'
+import { useTaskFilterStore } from '@/store/task-filter-store'
 import type { Priority } from '@/types'
 
 const STATUS_OPTIONS = [
@@ -20,9 +20,9 @@ const PRIORITY_FILTER_OPTIONS = [
 ] as const
 
 export function TaskFilters() {
-  const filters = useTaskStore((s) => s.filters)
-  const setFilter = useTaskStore((s) => s.setFilter)
-  const resetFilters = useTaskStore((s) => s.resetFilters)
+  const filters = useTaskFilterStore((s) => s.filters)
+  const setFilter = useTaskFilterStore((s) => s.setFilter)
+  const resetFilters = useTaskFilterStore((s) => s.resetFilters)
 
   const hasActiveFilters = filters.status !== 'all' || filters.priority !== 'all' || filters.sortByDueDate
 

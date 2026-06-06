@@ -1,17 +1,19 @@
 import { useMemo } from 'react'
 
+import { useTasks } from '@/hooks/use-tasks'
 import { compareLocalDates, fromIso } from '@/lib/local-date'
-import { useTaskStore } from '@/store/task-store'
+import { useTaskFilterStore } from '@/store/task-filter-store'
 import type { Task } from '@/types'
 
 /**
- * Derives a filtered and sorted task list from the Zustand store.
+ * Derives a filtered and sorted task list from the TanStack Query cache.
  * Default order is by index (natural drag-and-drop order).
  * When sortByDueDate is enabled, tasks are sorted by due date instead.
  */
 export function useFilteredTasks(): Task[] {
-  const tasks = useTaskStore((s) => s.tasks)
-  const filters = useTaskStore((s) => s.filters)
+  const tasksQuery = useTasks()
+  const tasks = tasksQuery.data ?? []
+  const filters = useTaskFilterStore((s) => s.filters)
 
   return useMemo(() => {
     const filtered: Task[] = []
