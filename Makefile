@@ -119,3 +119,24 @@ backend-db-push:
 backend-db-studio:
 	@echo "🚀 Opening Drizzle Studio..."
 	cd backend && pnpm run db:studio
+
+## up: Start backend and frontend in dev mode (db push first)
+.PHONY: up
+up: backend-db-push
+	@echo "🚀 Starting backend and frontend in dev mode..."
+	@cd backend && pnpm run dev & BACKEND_PID=$$! ; \
+	cd frontend && pnpm run dev ; \
+	EXIT=$$? ; \
+	kill $$BACKEND_PID 2>/dev/null || true ; \
+	exit $$EXIT
+
+## serve: Build both apps, then start backend and preview frontend (db push first)
+.PHONY: serve
+serve: backend-db-push backend-build frontend-build
+	@echo "🚀 Starting backend and previewing frontend..."
+	cd backend && pnpm run start & BACKEND_PID=$$! ; \
+	cd $(CURDIR) ; \
+	cd frontend && pnpm run preview ; \
+	EXIT=$$? ; \
+	kill $$BACKEND_PID 2>/dev/null || true ; \
+	exit $$EXIT

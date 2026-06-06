@@ -1,6 +1,6 @@
 # Task Manager — Frontend
 
-The single-page application for the Task Manager. Built with Vite, React 19, TypeScript, Tailwind CSS v4, and shadcn/ui. State is held in Zustand stores that persist to `localStorage`.
+The single-page application for the Task Manager. Built with Vite, React 19, TypeScript, Tailwind CSS v4, and shadcn/ui. Task data is fetched and cached by TanStack Query; a small Zustand store holds the filter UI state, and the theme preference is persisted to `localStorage` to avoid a flash of wrong theme on reload.
 
 For the project-level overview (features, tech stack, getting started, architecture notes, branches), see the [root README](../README.md).
 
@@ -40,7 +40,7 @@ Run from inside this directory.
 `@` resolves to `src/`, configured in `vite.config.ts` and `tsconfig.app.json`.
 
 ```ts
-import { useTaskStore } from '@/store/task-store'
+import { useTaskFilterStore } from '@/store/task-filter-store'
 ```
 
 ## Folder Layout
@@ -62,12 +62,14 @@ frontend/
 │   │   ├── task/               # TaskList, TaskItem, TaskForm, TaskFilters, TaskEmptyState, TaskStatistics
 │   │   └── ui/                 # shadcn/ui primitives (button, dialog, select, ...)
 │   ├── hooks/
-│   │   └── use-filtered-tasks.ts   # Derives the filtered/sorted list from the store
+│   │   ├── use-tasks.ts             # TanStack Query bindings (useTasks, useCreateTask, useUpdateTask, ...)
+│   │   └── use-filtered-tasks.ts   # Derives the filtered/sorted list from the cache
 │   ├── store/
-│   │   ├── task-store.ts       # Zustand store for tasks and filters, with persist
+│   │   ├── task-filter-store.ts # Zustand store for the filter UI state (not persisted)
 │   │   └── theme-store.ts      # Zustand store for the theme preference, with persist
 │   ├── lib/
 │   │   ├── utils.ts            # `cn` class-name helper
+│   │   ├── api.ts              # Typed fetch wrapper around the backend
 │   │   ├── indexing.ts         # Fractional key generation for drag reorders
 │   │   └── local-date.ts       # date-fns wrappers (today, formatRelative, compareLocalDates, ...)
 │   └── schemas/
@@ -87,7 +89,7 @@ Tests live in `__tests__/` folders co-located with the code they cover:
 - `src/components/task/__tests__/` — `task-list`, `task-item`, `task-form`, `task-filters`, `task-empty-state`, `task-statistics`
 - `src/hooks/__tests__/` — `use-filtered-tasks`
 - `src/lib/__tests__/` — `indexing`, `local-date`
-- `src/store/__tests__/` — `task-store`, `theme-store`
+- `src/store/__tests__/` — `task-filter-store`, `theme-store`
 
 ## Testing
 
@@ -102,12 +104,12 @@ pnpm test:watch    # watch mode
 
 ## State and Persistence
 
-Two Zustand stores, both using the `persist` middleware to write to `localStorage`:
+Two Zustand stores:
 
-- `useTaskStore` (`task-manager-store`, version `1`) — persists `tasks` only. Filters are intentionally not persisted; they reset to the defaults on every reload.
-- `useThemeStore` (`task-manager-theme`, version `1`) — persists the theme preference.
+- `useTaskFilterStore` — in-memory only (no `persist` middleware). Holds the filter UI state (`status`, `priority`, `sortByDueDate`, `sortDirection`) and resets to the defaults on every reload. Task data itself is owned by TanStack Query and lives in the server-state cache, not in any Zustand store.
+- `useThemeStore` (`task-manager-theme`, version `1`) — wraps `persist` to write the theme preference (`light` / `dark` / `system`) to `localStorage`. This is the only piece of state still in `localStorage`, and it must be read by the inline script in `index.html` to avoid a flash of wrong theme on reload.
 
-When the persisted shape changes, bump the `version` field in the corresponding store and add a `migrate` function.
+When a persisted store's shape changes, bump its `version` field and add a `migrate` function.
 
 ## Conventions
 
@@ -131,8 +133,4 @@ pnpm preview    # Serves dist/ locally for smoke-testing
 ## Pointers
 
 - Project overview, getting started, architecture, and branches: [root README](../README.md)
-- Backend implementation (Express.js) lives on the `with-backend` branch:
-
-  ```bash
-  git checkout with-backend
-  ```
+- Backend implementation: [backend/README.md](../backend/README.md)

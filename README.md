@@ -140,6 +140,17 @@ All scripts can be run from inside each package or via the `make` wrappers in th
 | Open Drizzle Studio        | `pnpm db:studio`      | `make backend-db-studio`   |
 | Clean `dist/`              | `rm -rf backend/dist` | `make backend-clean`       |
 
+### Both Apps
+
+Composite targets that run the backend and frontend together from the repo root. Both run `db:push` first so the database schema is in sync with the running backend.
+
+| Action                                            | make          |
+| ------------------------------------------------- | ------------- |
+| Start backend + frontend in dev mode (db push first) | `make up`    |
+| Build both, then start backend + preview frontend (db push first) | `make serve` |
+
+`make up` backgrounds the backend dev server and runs the frontend dev server in the foreground; Ctrl-C stops the frontend and the recipe then kills the backend. `make serve` does the same for the built bundle (`pnpm run start` + `vite preview`) after running the build steps. The recipe prints the working directory at each step so you can confirm it stays at the repo root.
+
 `make help` lists all targets with their descriptions.
 
 ## API
@@ -203,3 +214,8 @@ Validation errors return `400 { error, fieldErrors }`. Missing resources return 
 - **File conventions** (enforced by ESLint):
   - Filenames in `src/` are `kebab-case` (e.g. `task-list.tsx`, `task-form.tsx`).
   - Folders under `src/` (except `__tests__`) follow Next.js-app-router casing (e.g. `task/`, `ui/`, `lib/`).
+
+## Pointers
+
+- Frontend implementation details: [frontend/README.md](frontend/README.md)
+- Backend implementation details: [backend/README.md](backend/README.md)
