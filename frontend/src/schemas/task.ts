@@ -1,9 +1,6 @@
-import { z } from 'zod/v4'
+import { z } from 'zod'
 
-function getTodayString(): string {
-  const today = new Date()
-  return today.toISOString().split('T')[0]
-}
+import { getTodayString } from '@/lib/utils'
 
 export const taskFormSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(100, 'Title must be 100 characters or less'),

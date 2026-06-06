@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { getTodayString } from '@/lib/utils'
 import { type TaskFormData, newTaskFormSchema, taskFormSchema } from '@/schemas/task'
 import { PRIORITY_OPTIONS, useTaskStore } from '@/store/task-store'
 import type { Task } from '@/types'
@@ -23,11 +24,6 @@ interface TaskFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   editingTask?: Task | null
-}
-
-function getTodayString(): string {
-  const today = new Date()
-  return today.toISOString().split('T')[0]
 }
 
 export function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
