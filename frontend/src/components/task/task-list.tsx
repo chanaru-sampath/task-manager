@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import {
   DndContext,
@@ -10,7 +10,6 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { useVirtualizer } from '@tanstack/react-virtual'
 import { BarChart3, Info, Plus, RotateCcw } from 'lucide-react'
 
 import { TaskEmptyState } from '@/components/task/task-empty-state'
@@ -24,60 +23,9 @@ import { useFilteredTasks } from '@/hooks/use-filtered-tasks'
 import { useTaskStore } from '@/store/task-store'
 import type { Task } from '@/types'
 
+import { VirtualizedList } from '../virtualize-list'
+
 const ESTIMATED_ITEM_HEIGHT = 76 // Estimated height of each task card + gap
-
-function VirtualizedTaskList({
-  tasks,
-  onEdit,
-  onToggle,
-  onDelete,
-  today,
-  canReorder,
-}: {
-  tasks: Task[]
-  onEdit: (task: Task) => void
-  onToggle: (id: string) => void
-  onDelete: (id: string) => void
-  today: Date
-  canReorder: boolean
-}) {
-  const parentRef = useRef<HTMLDivElement>(null)
-
-  const virtualizer = useVirtualizer({
-    count: tasks.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => ESTIMATED_ITEM_HEIGHT,
-  })
-
-  return (
-    <div ref={parentRef} className="max-h-[calc(100vh-220px)] overflow-auto">
-      <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
-        {virtualizer.getVirtualItems().map(({ index, size, start }) => {
-          const task = tasks[index]
-          return (
-            <div
-              key={task.id}
-              className="absolute left-0 top-0 w-full pb-2"
-              style={{
-                height: `${size}px`,
-                transform: `translateY(${start}px)`,
-              }}
-            >
-              <TaskItem
-                task={task}
-                onEdit={onEdit}
-                onToggle={onToggle}
-                onDelete={onDelete}
-                today={today}
-                isManualSort={canReorder}
-              />
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
 
 export function TaskList() {
   const hasTasks = useTaskStore((s) => s.tasks.length > 0)
@@ -97,8 +45,6 @@ export function TaskList() {
 
   // Reordering is only allowed when no filters and no sort are active
   const canReorder = filters.status === 'all' && filters.priority === 'all' && !filters.sortByDueDate
-
-  const shouldVirtualize = filteredTasks.length > 50
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -222,20 +168,14 @@ export function TaskList() {
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           {filteredTasks.length === 0 ? (
             <TaskEmptyState hasFilters={hasFilters} />
-          ) : shouldVirtualize ? (
-            <VirtualizedTaskList
-              tasks={filteredTasks}
-              onEdit={handleEdit}
-              onToggle={toggleComplete}
-              onDelete={deleteTask}
-              today={today}
-              canReorder={canReorder}
-            />
           ) : (
-            <div className="space-y-2">
-              {filteredTasks.map((task) => (
+            <VirtualizedList
+              items={filteredTasks}
+              getItemKey={(task) => task.id}
+              maxHeight="60vh"
+              estimatedItemHeight={ESTIMATED_ITEM_HEIGHT}
+              renderItem={(task) => (
                 <TaskItem
-                  key={task.id}
                   task={task}
                   onEdit={handleEdit}
                   onToggle={toggleComplete}
@@ -243,8 +183,8 @@ export function TaskList() {
                   today={today}
                   isManualSort={canReorder}
                 />
-              ))}
-            </div>
+              )}
+            />
           )}
         </SortableContext>
       </DndContext>
