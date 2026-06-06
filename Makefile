@@ -70,3 +70,46 @@ frontend-test-watch:
 frontend-knip:
 	@echo "🚀 Detecting unused files..."
 	cd frontend && pnpm run knip
+
+## backend-dev: Start backend dev server
+.PHONY: backend-dev
+backend-dev:
+	@echo "🚀 Starting backend dev server..."
+	cd backend && pnpm run dev
+
+## backend-build: Build the backend application
+.PHONY: backend-build
+backend-build:
+	@echo "🛠️  Building backend..."
+	cd backend && pnpm run build
+
+## backend-start: Start the built backend application
+.PHONY: backend-start
+backend-start:
+	@echo "🚀 Starting backend..."
+	cd backend && pnpm run start
+
+## backend-clean: Cleanup backend build codes
+.PHONY: backend-clean
+backend-clean: confirm
+	@echo "Cleaning up backend..."
+	@rm -rf backend/dist
+	@echo "✅ Backend cleanup complete."
+
+## backend-db-generate: Generate Drizzle migration files
+.PHONY: backend-db-generate
+backend-db-generate:
+	@echo "🛠️  Generating database migrations..."
+	cd backend && pnpm run db:generate
+
+## backend-db-migrate: Apply Drizzle migrations to the database
+.PHONY: backend-db-migrate
+backend-db-migrate:
+	@echo "🚀 Applying database migrations..."
+	cd backend && pnpm run db:migrate
+
+## backend-db-studio: Open Drizzle Studio for the database
+.PHONY: backend-db-studio
+backend-db-studio:
+	@echo "🚀 Opening Drizzle Studio..."
+	cd backend && pnpm run db:studio
