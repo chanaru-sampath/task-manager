@@ -52,3 +52,21 @@ frontend-typecheck:
 frontend-preview:
 	@echo "🚀 Previewing frontend application"
 	cd frontend && pnpm run preview
+
+## frontend-test: Test frontend application
+.PHONY: frontend-test
+frontend-test:
+	@echo "🚀 Testing frontend application"
+	cd frontend && pnpm run test
+
+## frontend-test-watch: Test frontend application in watch mode
+.PHONY: frontend-test-watch
+frontend-test-watch:
+	@echo "🚀 Testing frontend application in watch mode"
+	cd frontend && pnpm run test:watch
+
+## frontend-knip: Detect unused files
+.PHONY: frontend-knip
+frontend-knip:
+	@echo "🚀 Detecting unused files..."
+	cd frontend && pnpm run knip
