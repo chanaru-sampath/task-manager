@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 
+import { compareLocalDates, fromIso } from '@/lib/local-date'
 import { useTaskStore } from '@/store/task-store'
 import type { Task } from '@/types'
 
@@ -23,11 +24,11 @@ export function useFilteredTasks(): Task[] {
 
     return filtered.toSorted((a, b) => {
       if (filters.sortByDueDate) {
-        const cmp = a.dueDate.localeCompare(b.dueDate)
-        return filters.sortDirection === 'asc' ? cmp : -cmp
+        return filters.sortDirection === 'asc'
+          ? compareLocalDates(fromIso(a.dueOn), fromIso(b.dueOn))
+          : compareLocalDates(fromIso(b.dueOn), fromIso(a.dueOn))
       }
 
-      // Default: sort by index (natural order)
       const indexA = a.index ?? Number.MAX_SAFE_INTEGER
       const indexB = b.index ?? Number.MAX_SAFE_INTEGER
       return indexA - indexB

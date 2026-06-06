@@ -15,7 +15,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { getTodayString } from '@/lib/utils'
+import { todayIso } from '@/lib/local-date'
 import { type TaskFormData, newTaskFormSchema, taskFormSchema } from '@/schemas/task'
 import { PRIORITY_OPTIONS, useTaskStore } from '@/store/task-store'
 import type { Task } from '@/types'
@@ -45,28 +45,25 @@ export function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
     resolver,
     defaultValues: {
       title: '',
-      dueDate: '',
+      dueOn: '',
       priority: 'medium',
     },
   })
 
-  const todayString = useMemo(() => getTodayString(), [])
+  const todayString = useMemo(() => todayIso(), [])
 
-  // Reset form state and focus input when modal opens
   useEffect(() => {
     if (open) {
-      // Reset form
       if (editingTask) {
         reset({
           title: editingTask.title,
-          dueDate: editingTask.dueDate,
+          dueOn: editingTask.dueOn,
           priority: editingTask.priority,
         })
       } else {
-        reset({ title: '', dueDate: '', priority: 'medium' })
+        reset({ title: '', dueOn: '', priority: 'medium' })
       }
 
-      // Auto-focus title
       const timer = setTimeout(() => titleRef.current?.focus(), 100)
       return () => clearTimeout(timer)
     }
@@ -94,7 +91,6 @@ export function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
         </DialogHeader>
 
         <form id="task-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
-          {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="task-title">
               Title <span className="text-destructive">*</span>
@@ -112,7 +108,6 @@ export function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
               }}
               {...titleRegister}
             />
-            {/* Fix #11: Use ternary */}
             {errors.title ? (
               <p id="task-title-error" className="text-xs text-destructive">
                 {errors.title.message}
@@ -120,7 +115,6 @@ export function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
             ) : null}
           </div>
 
-          {/* Due Date */}
           <div className="space-y-2">
             <Label htmlFor="task-due-date">
               Due Date <span className="text-destructive">*</span>
@@ -129,19 +123,17 @@ export function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
               id="task-due-date"
               type="date"
               min={isEditing ? undefined : todayString}
-              aria-invalid={!!errors.dueDate}
-              aria-describedby={errors.dueDate ? 'task-due-date-error' : undefined}
-              {...register('dueDate')}
+              aria-invalid={!!errors.dueOn}
+              aria-describedby={errors.dueOn ? 'task-due-date-error' : undefined}
+              {...register('dueOn')}
             />
-            {/* Fix #11: Use ternary */}
-            {errors.dueDate ? (
+            {errors.dueOn ? (
               <p id="task-due-date-error" className="text-xs text-destructive">
-                {errors.dueDate.message}
+                {errors.dueOn.message}
               </p>
             ) : null}
           </div>
 
-          {/* Priority */}
           <div className="space-y-2">
             <Label htmlFor="task-priority">Priority</Label>
             <Controller

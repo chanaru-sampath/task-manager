@@ -17,8 +17,9 @@ interface TaskItemProps {
   onEdit: (task: Task) => void
   onToggle: (id: string) => void
   onDelete: (id: string) => void
-  today: Date
-  isManualSort?: boolean // Whether to enable drag-and-drop
+  overdue: boolean
+  displayDate: string
+  isManualSort?: boolean
 }
 
 const PRIORITY_CONFIG = {
@@ -36,40 +37,15 @@ const PRIORITY_CONFIG = {
   },
 } as const
 
-function formatDueDate(dateStr: string, today: Date): string {
-  const date = new Date(dateStr + 'T00:00:00')
-
-  const diffMs = date.getTime() - today.getTime()
-  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24))
-
-  if (diffDays === 0) return 'Today'
-  if (diffDays === 1) return 'Tomorrow'
-  if (diffDays === -1) return 'Yesterday'
-  if (diffDays > 1 && diffDays <= 7) return `In ${diffDays} days`
-  if (diffDays < -1 && diffDays >= -7) return `${Math.abs(diffDays)} days ago`
-
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
-  })
-}
-
-function isOverdue(dateStr: string, completed: boolean, today: Date): boolean {
-  if (completed) return false
-  const date = new Date(dateStr + 'T00:00:00')
-  return date < today
-}
-
 export const TaskItem = React.memo(function TaskItem({
   task,
   onEdit,
   onToggle,
   onDelete,
-  today,
+  overdue,
+  displayDate,
   isManualSort,
 }: TaskItemProps) {
-  const overdue = isOverdue(task.dueDate, task.completed, today)
   const priorityConfig = PRIORITY_CONFIG[task.priority]
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -94,7 +70,6 @@ export const TaskItem = React.memo(function TaskItem({
         task.completed && 'opacity-60'
       )}
     >
-      {/* Drag Handle */}
       {isManualSort && (
         <button
           className="cursor-grab text-muted-foreground/50 hover:text-foreground focus:outline-none active:cursor-grabbing"
@@ -106,7 +81,6 @@ export const TaskItem = React.memo(function TaskItem({
         </button>
       )}
 
-      {/* Checkbox */}
       <Checkbox
         id={`task-checkbox-${task.id}`}
         checked={task.completed}
@@ -115,7 +89,6 @@ export const TaskItem = React.memo(function TaskItem({
         className="shrink-0"
       />
 
-      {/* Content */}
       <div className="min-w-0 flex-1">
         <p
           className={cn(
@@ -133,7 +106,7 @@ export const TaskItem = React.memo(function TaskItem({
             )}
           >
             <Calendar className="size-3" />
-            {formatDueDate(task.dueDate, today)}
+            {displayDate}
           </span>
           <Badge variant="outline" className={cn('text-[10px] uppercase tracking-wider', priorityConfig.className)}>
             {priorityConfig.label}
@@ -141,7 +114,6 @@ export const TaskItem = React.memo(function TaskItem({
         </div>
       </div>
 
-      {/* Actions */}
       <div className="shrink-0">
         <DropdownMenu>
           <Tooltip>

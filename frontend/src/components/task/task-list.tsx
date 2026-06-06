@@ -20,12 +20,18 @@ import { TaskStatistics } from '@/components/task/task-statistics'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { useFilteredTasks } from '@/hooks/use-filtered-tasks'
+import { formatRelative, fromIso, isBeforeLocalDate, today } from '@/lib/local-date'
 import { useTaskStore } from '@/store/task-store'
 import type { Task } from '@/types'
 
 import { VirtualizedList } from '../virtualize-list'
 
 const ESTIMATED_ITEM_HEIGHT = 76 // Estimated height of each task card + gap
+
+interface TaskDisplay {
+  overdue: boolean
+  display: string
+}
 
 export function TaskList() {
   const hasTasks = useTaskStore((s) => s.tasks.length > 0)
@@ -43,7 +49,6 @@ export function TaskList() {
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [showReorderWarning, setShowReorderWarning] = useState(false)
 
-  // Reordering is only allowed when no filters and no sort are active
   const canReorder = filters.status === 'all' && filters.priority === 'all' && !filters.sortByDueDate
 
   const sensors = useSensors(
@@ -57,11 +62,19 @@ export function TaskList() {
     })
   )
 
-  const today = useMemo(() => {
-    const d = new Date()
-    d.setHours(0, 0, 0, 0)
-    return d
-  }, [])
+  const todayDate = useState(() => today())[0]
+
+  const displayByTaskId = useMemo(() => {
+    const map = new Map<string, TaskDisplay>()
+    for (const task of filteredTasks) {
+      const d = fromIso(task.dueOn)
+      map.set(task.id, {
+        overdue: !task.completed && isBeforeLocalDate(d, todayDate),
+        display: formatRelative(d, todayDate),
+      })
+    }
+    return map
+  }, [filteredTasks, todayDate])
 
   const handleEdit = useCallback((task: Task) => {
     setEditingTask(task)
@@ -91,7 +104,6 @@ export function TaskList() {
         const oldIndex = filteredTasks.findIndex((t) => t.id === active.id)
         const newIndex = filteredTasks.findIndex((t) => t.id === over.id)
 
-        // Calculate the new array to find the neighbors of the moved item
         const newTasks = arrayMove(filteredTasks, oldIndex, newIndex)
         const prevTask = newTasks[newIndex - 1]
         const nextTask = newTasks[newIndex + 1]
@@ -111,7 +123,6 @@ export function TaskList() {
 
   return (
     <>
-      {/* Top bar: filters + add button */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {hasTasks ? <TaskFilters /> : null}
         <Button id="add-task-button" onClick={handleAddNew} className="shrink-0 sm:ml-auto">
@@ -120,7 +131,6 @@ export function TaskList() {
         </Button>
       </div>
 
-      {/* Reorder warning banner */}
       {showReorderWarning && !canReorder && (
         <div className="mb-4 flex items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm">
           <Info className="size-4 shrink-0 text-amber-500" />
@@ -146,7 +156,6 @@ export function TaskList() {
         </div>
       )}
 
-      {/* Statistics Accordion */}
       {hasTasks ? (
         <Accordion type="single" collapsible className="mb-6">
           <AccordionItem value="statistics" className="border-none">
@@ -163,7 +172,6 @@ export function TaskList() {
         </Accordion>
       ) : null}
 
-      {/* Task list */}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           {filteredTasks.length === 0 ? (
@@ -174,22 +182,25 @@ export function TaskList() {
               getItemKey={(task) => task.id}
               maxHeight="60vh"
               estimatedItemHeight={ESTIMATED_ITEM_HEIGHT}
-              renderItem={(task) => (
-                <TaskItem
-                  task={task}
-                  onEdit={handleEdit}
-                  onToggle={toggleComplete}
-                  onDelete={deleteTask}
-                  today={today}
-                  isManualSort={canReorder}
-                />
-              )}
+              renderItem={(task) => {
+                const info = displayByTaskId.get(task.id) ?? { overdue: false, display: '' }
+                return (
+                  <TaskItem
+                    task={task}
+                    onEdit={handleEdit}
+                    onToggle={toggleComplete}
+                    onDelete={deleteTask}
+                    overdue={info.overdue}
+                    displayDate={info.display}
+                    isManualSort={canReorder}
+                  />
+                )
+              }}
             />
           )}
         </SortableContext>
       </DndContext>
 
-      {/* FAB for mobile */}
       <button
         id="add-task-fab"
         onClick={handleAddNew}
@@ -199,7 +210,6 @@ export function TaskList() {
         <Plus className="size-6" />
       </button>
 
-      {/* Form dialog */}
       <TaskForm open={formOpen} onOpenChange={handleFormOpenChange} editingTask={editingTask} />
     </>
   )

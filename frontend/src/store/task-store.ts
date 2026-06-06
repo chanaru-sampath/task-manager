@@ -6,13 +6,11 @@ import { generateKeyBetween } from '@/lib/indexing'
 import type { Priority, Task, TaskFilters } from '@/types'
 
 interface TaskStore {
-  // State
   tasks: Task[]
   filters: TaskFilters
 
-  // Actions
-  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'completed' | 'index'>) => void
-  updateTask: (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => void
+  addTask: (task: Omit<Task, 'id' | 'completed' | 'index'>) => void
+  updateTask: (id: string, updates: Partial<Omit<Task, 'id'>>) => void
   deleteTask: (id: string) => void
   toggleComplete: (id: string) => void
   reorderTask: (id: string, previousIndex: number | null, nextIndex: number | null) => void
@@ -35,7 +33,6 @@ export const useTaskStore = create<TaskStore>()(
 
       addTask: (taskData) => {
         set((state) => {
-          // Find the highest index in the current list
           let highestIndex: number | null = null
           for (const task of state.tasks) {
             if (task.index !== null && (highestIndex === null || task.index > highestIndex)) {
@@ -46,7 +43,7 @@ export const useTaskStore = create<TaskStore>()(
           const newTask: Task = {
             id: uuidv4(),
             title: taskData.title,
-            dueDate: taskData.dueDate,
+            dueOn: taskData.dueOn,
             priority: taskData.priority,
             completed: false,
             index: generateKeyBetween(highestIndex, null),
@@ -93,15 +90,13 @@ export const useTaskStore = create<TaskStore>()(
       },
     }),
     {
-      name: 'task-manager-storage',
+      name: 'task-manager-tasks',
       version: 3,
-      // Only persist tasks, not filters (filters reset on reload for better UX)
       partialize: (state) => ({ tasks: state.tasks }) as Partial<TaskStore>,
     }
   )
 )
 
-// Selector for priority options
 export const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
   { value: 'low', label: 'Low' },
   { value: 'medium', label: 'Medium' },

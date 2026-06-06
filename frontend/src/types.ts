@@ -5,7 +5,7 @@ type SortDirection = 'asc' | 'desc'
 export interface Task {
   id: string
   title: string
-  dueDate: string // Date string (YYYY-MM-DD)
+  dueOn: string // Date string (YYYY-MM-DD)
   priority: Priority
   completed: boolean
   index: number // Float index for drag-and-drop ordering
