@@ -1,7 +1,9 @@
-import 'dotenv/config';
+import { config as loadEnv } from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import tasksRouter from './routes/tasks';
+
+loadEnv({ path: '.env.local' });
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -13,12 +15,11 @@ const allowedOrigins = process.env.CORS_ORIGIN
 // Middleware
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. curl, Postman)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
     callback(new Error(`CORS blocked: ${origin}`));
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
@@ -30,6 +31,12 @@ app.use('/tasks', tasksRouter);
 // 404 handler
 app.use((_req, res) => {
   res.status(404).json({ error: 'Route not found' });
+});
+
+// Centralized error handler
+app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error(err);
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 app.listen(PORT, () => {

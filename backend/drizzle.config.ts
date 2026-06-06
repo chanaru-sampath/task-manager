@@ -1,6 +1,8 @@
 /// <reference types="node" />
-import 'dotenv/config';
+import { config as loadEnv } from 'dotenv';
 import { defineConfig } from 'drizzle-kit';
+
+loadEnv({ path: '.env.local' });
 
 export default defineConfig({
   out: './drizzle',

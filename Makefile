@@ -108,6 +108,12 @@ backend-db-migrate:
 	@echo "🚀 Applying database migrations..."
 	cd backend && pnpm run db:migrate
 
+## backend-db-push: Push schema to the database
+.PHONY: backend-db-push
+backend-db-push:
+	@echo "🚀 Pushing schema to the database..."
+	cd backend && pnpm run db:push
+
 ## backend-db-studio: Open Drizzle Studio for the database
 .PHONY: backend-db-studio
 backend-db-studio:

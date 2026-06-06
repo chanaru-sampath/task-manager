@@ -1,6 +1,6 @@
 # Task Manager
 
-A polished, persistent task tracker built as a Vite + React 19 single-page app. Add, filter, sort, reorder, and visualize your tasks with a smooth, keyboard-friendly UI. All data is stored locally in the browser; no account or server required.
+A polished, persistent task tracker built as a Vite + React 19 single-page app backed by an Express + SQLite API. Add, filter, sort, reorder, and visualize your tasks with a smooth, keyboard-friendly UI. Data is stored server-side; only the theme preference lives in the browser.
 
 ## Features
 
@@ -12,45 +12,33 @@ A polished, persistent task tracker built as a Vite + React 19 single-page app. 
 - **Statistics dashboard** (collapsible accordion) with a completion pie chart and a priority distribution bar chart
 - **Relative due dates** (Today / Tomorrow / Yesterday / N days) and overdue highlighting in red
 - **Light, dark, and system** theme toggle with no flash of wrong theme on reload
-- **Persistent** state across reloads via `localStorage`
+- **Optimistic mutations** powered by TanStack Query: the UI updates instantly and rolls back on error
 - **Responsive** sticky header with a mobile floating action button for adding tasks
 - **Toast notifications** for create, update, and delete actions
 - **Destructive confirm dialogs** before deleting a task
 
 ## Tech Stack
 
-**Framework**
+**Frontend** (`frontend/`)
 
 - React 19, TypeScript, Vite 8
+- TanStack Query for server-state cache, optimistic updates, and request lifecycle
+- Zod for form validation (shared shape with the backend)
+- Tailwind CSS v4, shadcn/ui primitives, lucide-react icons
+- Zustand (filter-only store; the task list lives in the TanStack Query cache)
+- `@dnd-kit/sortable` for drag-and-drop, `@tanstack/react-virtual` for virtualization, `recharts` for statistics
+- `date-fns` for date math
 
-**UI**
+**Backend** (`backend/`)
 
-- Tailwind CSS v4
-- shadcn/ui (radix-vega style) primitives
-- lucide-react icons
-
-**State and data**
-
-- Zustand with the `persist` middleware (localStorage)
-
-**Forms and validation**
-
-- react-hook-form
-- Zod
-
-**Interaction**
-
-- `@dnd-kit/sortable` for drag-and-drop
-- `@tanstack/react-virtual` for the virtualized task list
-- `recharts` for statistics
-
-**Dates**
-
-- `date-fns`
+- Express 5, TypeScript (`tsx` for dev, `tsc` for build)
+- Drizzle ORM + libSQL (SQLite, file-backed by default)
+- Zod for request validation (mirrors the frontend schemas)
+- dotenv for env loading
 
 **Testing and tooling**
 
-- Vitest with the Playwright browser provider (Chromium)
+- Vitest with the Playwright browser provider (Chromium) — frontend only
 - ESLint, Prettier, Knip
 - Husky `pre-commit` and `pre-push` hooks wired with `lint-staged`
 
@@ -58,8 +46,15 @@ A polished, persistent task tracker built as a Vite + React 19 single-page app. 
 
 ```
 task-manager/
-├── backend/                 # Placeholder for a future API (see Branches)
-├── frontend/                # The application
+├── backend/                # Express + Drizzle + SQLite API
+│   ├── src/
+│   │   ├── db/             # Drizzle client and schema
+│   │   ├── routes/         # /tasks router
+│   │   ├── schemas/        # Zod request schemas
+│   │   └── index.ts
+│   ├── drizzle/            # Generated migrations
+│   └── package.json
+├── frontend/               # The application
 │   ├── src/
 │   ├── public/
 │   ├── components.json
@@ -69,12 +64,10 @@ task-manager/
 │   ├── prettier.config.mjs
 │   ├── vite.config.ts
 │   └── ...
-├── .husky/                  # pre-commit and pre-push hooks
-├── Makefile                 # Convenience wrappers around frontend scripts
-├── README.md                # You are here
+├── .husky/                 # pre-commit and pre-push hooks
+├── Makefile                # Convenience wrappers around frontend + backend scripts
+├── README.md               # You are here
 ```
-
-The `backend/` directory is intentionally empty on this branch.
 
 ## Getting Started
 
@@ -83,23 +76,44 @@ The `backend/` directory is intentionally empty on this branch.
 - Node.js 20+
 - pnpm 9+
 
-### Install and run
+### Backend setup
+
+```bash
+cd backend
+pnpm install
+cp .env.sample .env.local   # already done in this repo
+pnpm run db:migrate         # apply migrations to local.db
+```
+
+The backend runs on http://localhost:3001 by default. The bundled `backend/.env.local` configures SQLite at `file:local.db` and allows CORS from `http://localhost:3000` and `http://localhost:4173`.
+
+```bash
+make backend-dev
+# or: cd backend && pnpm run dev
+```
+
+### Frontend setup
 
 ```bash
 cd frontend
 pnpm install
-pnpm dev
+cp .env.sample .env.local
 ```
 
-The dev server starts on http://localhost:3000. A `Makefile` wrapper is provided at the project root:
+`.env.local` only needs `VITE_API_URL` (defaults to `http://localhost:3001`).
 
 ```bash
 make frontend-dev
+# or: cd frontend && pnpm run dev
 ```
+
+The dev server starts on http://localhost:3000.
 
 ## Available Scripts
 
-All scripts run from inside `frontend/` unless you use the `make` wrappers in the repo root.
+All scripts can be run from inside each package or via the `make` wrappers in the repo root.
+
+### Frontend
 
 | Action                   | pnpm                   | make                                             |
 | ------------------------ | ---------------------- | ------------------------------------------------ |
@@ -114,7 +128,46 @@ All scripts run from inside `frontend/` unless you use the `make` wrappers in th
 | Detect dead code         | `pnpm knip`            | `make frontend-knip`                             |
 | Clean build output       | `rm -rf frontend/dist` | `make frontend-clean` (prompts for confirmation) |
 
+### Backend
+
+| Action                     | pnpm                  | make                       |
+| -------------------------- | --------------------- | -------------------------- |
+| Start dev server (watch)   | `pnpm dev`            | `make backend-dev`         |
+| Type-check + build         | `pnpm build`          | `make backend-build`       |
+| Start compiled server      | `pnpm start`          | `make backend-start`       |
+| Generate a new migration   | `pnpm db:generate`    | `make backend-db-generate` |
+| Apply migrations to the DB | `pnpm db:migrate`     | `make backend-db-migrate`  |
+| Open Drizzle Studio        | `pnpm db:studio`      | `make backend-db-studio`   |
+| Clean `dist/`              | `rm -rf backend/dist` | `make backend-clean`       |
+
 `make help` lists all targets with their descriptions.
+
+## API
+
+Base URL: `http://localhost:3001`
+
+| Method | Path         | Body                                                        | Returns          |
+| ------ | ------------ | ----------------------------------------------------------- | ---------------- |
+| GET    | `/tasks`     | —                                                           | `200 Task[]`     |
+| POST   | `/tasks`     | `{ title, dueOn: "YYYY-MM-DD", priority }`                  | `201 Task`       |
+| PATCH  | `/tasks/:id` | partial `{ title?, dueOn?, priority?, completed?, index? }` | `200 Task`       |
+| DELETE | `/tasks/:id` | —                                                           | `204`            |
+| GET    | `/health`    | —                                                           | `200 { status }` |
+
+`Task` shape:
+
+```ts
+{
+  id: string; // UUID
+  title: string;
+  dueOn: string; // 'YYYY-MM-DD'
+  priority: "low" | "medium" | "high";
+  completed: boolean;
+  index: number; // float for fractional-index ordering
+}
+```
+
+Validation errors return `400 { error, fieldErrors }`. Missing resources return `404 { error }`. Unhandled errors return `500 { error }`.
 
 ## Testing and Quality
 
@@ -136,26 +189,17 @@ All scripts run from inside `frontend/` unless you use the `make` wrappers in th
 
 ## Architecture Notes
 
-- **Persistence keys** (in `localStorage`):
-  - `task-manager-store` holds `tasks` only (filters are intentionally not persisted; the schema is versioned, bump the `version` field in `store/task-store.ts` if you change its shape).
-  - `task-manager-theme` holds the theme preference (`light` / `dark` / `system`).
-- **Fractional indexing**: `lib/indexing.ts` assigns each task a float `index` that sits between its neighbors. Drag-to-reorder recomputes only the moved item's index in O(1), avoiding full-list rewrites.
-- **Path alias**: `@` resolves to `frontend/src` (configured in `vite.config.ts` and `tsconfig`).
-- **Theme no-FOUC**: an inline script in `frontend/index.html` reads the persisted theme from `localStorage` before the first paint, so the page never flashes the wrong theme.
-- **Virtualized list**: the task list is rendered through `components/virtualize-list.tsx` using `@tanstack/react-virtual`, with the scroll area capped at `60vh` so the page remains responsive with large lists.
+- **Persistence split**:
+  - Tasks live in the backend's SQLite database (`backend/local.db` by default). Drizzle migrations live under `backend/drizzle/`.
+  - The theme preference (`light` / `dark` / `system`) is the only thing still in `localStorage` (key: `task-manager-theme`), to avoid a flash of wrong theme on reload. See `frontend/src/store/theme-store.ts` and the inline script in `frontend/index.html`.
+- **Server-state cache**: `useTasks()` is the single source of truth for the task list. Mutations (`useCreateTask`, `useUpdateTask`, `useReorderTask`, `useDeleteTask`) apply optimistic updates and roll back on error before invalidating the cache.
+- **Filter store**: only the filter UI state (`status`, `priority`, `sortByDueDate`, `sortDirection`) lives in a small Zustand store (`useTaskFilterStore`). It is intentionally not persisted, so filters reset on reload.
+- **Fractional indexing**: `lib/indexing.ts` assigns each task a float `index` that sits between its neighbors. Drag-to-reorder computes only the moved item's new index client-side and PATCHes the server.
+- **Validation**: the frontend uses Zod for the form (`frontend/src/schemas/task.ts`); the backend re-validates the same shape with its own Zod schema (`backend/src/schemas/task.ts`) and returns 400 with `fieldErrors` on failure.
+- **Path aliases**: `@` resolves to `frontend/src` (configured in `vite.config.ts` and `tsconfig`).
+- **Theme no-FOUC**: an inline script in `frontend/index.html` reads the persisted theme from `localStorage` before the first paint.
+- **Virtualized list**: the task list is rendered through `components/virtualize-list.tsx` using `@tanstack/react-virtual`, capped at `60vh` so the page stays responsive with large lists.
 - **Manual chunks**: `vite.config.ts` splits `recharts` into its own chunk so the heavy charting library does not bloat the initial vendor bundle.
 - **File conventions** (enforced by ESLint):
   - Filenames in `src/` are `kebab-case` (e.g. `task-list.tsx`, `task-form.tsx`).
   - Folders under `src/` (except `__tests__`) follow Next.js-app-router casing (e.g. `task/`, `ui/`, `lib/`).
-
-## Branches
-
-- `main` (this branch) — the frontend application only. All data is stored in the browser's `localStorage`. No backend, no setup beyond `pnpm install`.
-- `with-backend` — adds a simple Express.js backend implementation. To explore that version, check the branch out and read its README:
-
-  ```bash
-  git fetch origin
-  git checkout with-backend
-  ```
-
-  The `with-backend` branch contains the API and any environment / database setup instructions specific to it.

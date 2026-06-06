@@ -1,60 +1,57 @@
+import { randomUUID } from 'node:crypto';
+
 import { Router } from 'express';
-import { eq } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 import { db } from '../db';
 import { tasks } from '../db/schema';
+import { createTaskSchema, updateTaskSchema, validate } from '../schemas/task';
 
 const tasksRouter = Router();
 
-// GET /tasks
-tasksRouter.get('/', async (_req, res) => {
+tasksRouter.get('/', async (_req, res, next) => {
   try {
-    const all = await db.select().from(tasks);
-    res.json(all);
+    const rows = await db.select().from(tasks).orderBy(asc(tasks.index));
+    res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch tasks' });
+    next(err);
   }
 });
 
-// GET /tasks/:id
-tasksRouter.get('/:id', async (req, res) => {
+tasksRouter.post('/', validate(createTaskSchema), async (req, res, next) => {
   try {
-    const task = await db
-      .select()
-      .from(tasks)
-      .where(eq(tasks.id, Number(req.params.id)));
+    const { title, dueOn, priority } = req.body as { title: string; dueOn: string; priority: 'low' | 'medium' | 'high' };
 
-    if (!task.length) {
-      res.status(404).json({ error: 'Task not found' });
-      return;
-    }
-    res.json(task[0]);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch task' });
-  }
-});
+    const existing = await db.select({ index: tasks.index }).from(tasks).orderBy(asc(tasks.index));
+    const highest = existing.length ? (existing[existing.length - 1]!.index ?? 0) : null;
+    const newIndex = highest === null ? 1.0 : highest + 1.0;
 
-// POST /tasks
-tasksRouter.post('/', async (req, res) => {
-  try {
-    const { title } = req.body;
-    const newTask = await db
+    const id = randomUUID();
+    const inserted = await db
       .insert(tasks)
-      .values({ title })
+      .values({ id, title, dueOn, priority, completed: false, index: newIndex })
       .returning();
-    res.status(201).json(newTask[0]);
+
+    res.status(201).json(inserted[0]);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to create task' });
+    next(err);
   }
 });
 
-// PUT /tasks/:id
-tasksRouter.put('/:id', async (req, res) => {
+tasksRouter.patch('/:id', validate(updateTaskSchema), async (req, res, next) => {
   try {
-    const { title, completed } = req.body;
+    const { id } = req.params as { id: string };
+    const updates = req.body as {
+      title?: string;
+      dueOn?: string;
+      priority?: 'low' | 'medium' | 'high';
+      completed?: boolean;
+      index?: number;
+    };
+
     const updated = await db
       .update(tasks)
-      .set({ title, completed })
-      .where(eq(tasks.id, Number(req.params.id)))
+      .set({ ...updates })
+      .where(eq(tasks.id, id))
       .returning();
 
     if (!updated.length) {
@@ -63,25 +60,22 @@ tasksRouter.put('/:id', async (req, res) => {
     }
     res.json(updated[0]);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to update task' });
+    next(err);
   }
 });
 
-// DELETE /tasks/:id
-tasksRouter.delete('/:id', async (req, res) => {
+tasksRouter.delete('/:id', async (req, res, next) => {
   try {
-    const deleted = await db
-      .delete(tasks)
-      .where(eq(tasks.id, Number(req.params.id)))
-      .returning();
+    const { id } = req.params as { id: string };
+    const deleted = await db.delete(tasks).where(eq(tasks.id, id)).returning();
 
     if (!deleted.length) {
       res.status(404).json({ error: 'Task not found' });
       return;
     }
-    res.json({ message: 'Task deleted', task: deleted[0] });
+    res.status(204).send();
   } catch (err) {
-    res.status(500).json({ error: 'Failed to delete task' });
+    next(err);
   }
 });
 
