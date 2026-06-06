@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -72,8 +73,10 @@ export function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
   function onSubmit(data: TaskFormData) {
     if (isEditing) {
       updateTask(editingTask.id, data)
+      toast.success('Task updated')
     } else {
       addTask(data)
+      toast.success('Task added')
     }
     onOpenChange(false)
   }

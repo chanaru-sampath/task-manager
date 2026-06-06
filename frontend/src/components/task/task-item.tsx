@@ -16,7 +16,7 @@ interface TaskItemProps {
   task: Task
   onEdit: (task: Task) => void
   onToggle: (id: string) => void
-  onDelete: (id: string) => void
+  onDeleteRequest: (task: Task) => void
   overdue: boolean
   displayDate: string
   isManualSort?: boolean
@@ -41,7 +41,7 @@ export const TaskItem = React.memo(function TaskItem({
   task,
   onEdit,
   onToggle,
-  onDelete,
+  onDeleteRequest,
   overdue,
   displayDate,
   isManualSort,
@@ -138,7 +138,7 @@ export const TaskItem = React.memo(function TaskItem({
             </DropdownMenuItem>
             <DropdownMenuItem
               id={`task-delete-${task.id}`}
-              onClick={() => onDelete(task.id)}
+              onClick={() => onDeleteRequest(task)}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="mr-2 size-4" />

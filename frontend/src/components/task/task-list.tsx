@@ -11,7 +11,9 @@ import {
 } from '@dnd-kit/core'
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { BarChart3, Info, Plus, RotateCcw } from 'lucide-react'
+import { toast } from 'sonner'
 
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { TaskEmptyState } from '@/components/task/task-empty-state'
 import { TaskFilters } from '@/components/task/task-filters'
 import { TaskForm } from '@/components/task/task-form'
@@ -47,6 +49,7 @@ export function TaskList() {
 
   const [formOpen, setFormOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [deletingTask, setDeletingTask] = useState<Task | null>(null)
   const [showReorderWarning, setShowReorderWarning] = useState(false)
 
   const canReorder = filters.status === 'all' && filters.priority === 'all' && !filters.sortByDueDate
@@ -76,20 +79,46 @@ export function TaskList() {
     return map
   }, [filteredTasks, todayDate])
 
-  const handleEdit = useCallback((task: Task) => {
+  const handleEdit = (task: Task) => {
     setEditingTask(task)
     setFormOpen(true)
-  }, [])
+  }
 
-  const handleFormOpenChange = useCallback((open: boolean) => {
+  const handleFormOpenChange = (open: boolean) => {
     setFormOpen(open)
     if (!open) setEditingTask(null)
-  }, [])
+  }
 
-  const handleAddNew = useCallback(() => {
+  const handleAddNew = () => {
     setEditingTask(null)
     setFormOpen(true)
+  }
+
+  const handleDeleteRequest = (task: Task) => {
+    setDeletingTask(task)
+  }
+
+  const handleDeleteConfirm = useCallback(() => {
+    if (!deletingTask) return
+    deleteTask(deletingTask.id)
+    toast.success('Task deleted')
+    setDeletingTask(null)
+  }, [deletingTask, deleteTask])
+
+  const handleDeleteDialogChange = useCallback((open: boolean) => {
+    if (!open) setDeletingTask(null)
   }, [])
+
+  const deleteDescription = useMemo(() => {
+    if (!deletingTask) return null
+    return (
+      <>
+        Are you sure you want to delete &ldquo;
+        <span className="font-medium text-foreground">{deletingTask.title}</span>
+        &rdquo;? This action cannot be undone.
+      </>
+    )
+  }, [deletingTask])
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
@@ -189,7 +218,7 @@ export function TaskList() {
                     task={task}
                     onEdit={handleEdit}
                     onToggle={toggleComplete}
-                    onDelete={deleteTask}
+                    onDeleteRequest={handleDeleteRequest}
                     overdue={info.overdue}
                     displayDate={info.display}
                     isManualSort={canReorder}
@@ -211,6 +240,18 @@ export function TaskList() {
       </button>
 
       <TaskForm open={formOpen} onOpenChange={handleFormOpenChange} editingTask={editingTask} />
+
+      <ConfirmDialog
+        open={deletingTask !== null}
+        onOpenChange={handleDeleteDialogChange}
+        title="Delete task?"
+        description={deleteDescription}
+        confirmLabel="Delete"
+        destructive
+        onConfirm={handleDeleteConfirm}
+        confirmButtonId="task-delete-confirm"
+        cancelButtonId="task-delete-cancel"
+      />
     </>
   )
 }
