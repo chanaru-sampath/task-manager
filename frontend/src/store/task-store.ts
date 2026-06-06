@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
@@ -41,7 +40,7 @@ export const useTaskStore = create<TaskStore>()(
           }
 
           const newTask: Task = {
-            id: uuidv4(),
+            id: crypto.randomUUID(),
             title: taskData.title,
             dueOn: taskData.dueOn,
             priority: taskData.priority,
@@ -90,8 +89,8 @@ export const useTaskStore = create<TaskStore>()(
       },
     }),
     {
-      name: 'task-manager-tasks',
-      version: 3,
+      name: 'task-manager-store',
+      version: 1,
       partialize: (state) => ({ tasks: state.tasks }) as Partial<TaskStore>,
     }
   )
