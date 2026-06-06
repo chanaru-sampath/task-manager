@@ -17,6 +17,11 @@ export default defineConfig({
       provider: playwright(),
       instances: [{ browser: 'chromium' }],
     },
+    server: {
+      deps: {
+        inline: [/^radix-ui/, /^@radix-ui/, /^react-hook-form/, 'sonner', 'next-themes', 'recharts', /^recharts/],
+      },
+    },
   },
   resolve: {
     alias: {
