@@ -1,5 +1,3 @@
-import { useMemo } from 'react'
-
 import { compareLocalDates, fromIso } from '@/lib/local-date'
 import { useTaskStore } from '@/store/task-store'
 import type { Task } from '@/types'
@@ -13,25 +11,23 @@ export function useFilteredTasks(): Task[] {
   const tasks = useTaskStore((s) => s.tasks)
   const filters = useTaskStore((s) => s.filters)
 
-  return useMemo(() => {
-    const filtered: Task[] = []
-    for (const t of tasks) {
-      if (filters.status === 'completed' && !t.completed) continue
-      if (filters.status === 'active' && t.completed) continue
-      if (filters.priority !== 'all' && t.priority !== filters.priority) continue
-      filtered.push(t)
+  const filtered: Task[] = []
+  for (const t of tasks) {
+    if (filters.status === 'completed' && !t.completed) continue
+    if (filters.status === 'active' && t.completed) continue
+    if (filters.priority !== 'all' && t.priority !== filters.priority) continue
+    filtered.push(t)
+  }
+
+  return filtered.toSorted((a, b) => {
+    if (filters.sortByDueDate) {
+      return filters.sortDirection === 'asc'
+        ? compareLocalDates(fromIso(a.dueOn), fromIso(b.dueOn))
+        : compareLocalDates(fromIso(b.dueOn), fromIso(a.dueOn))
     }
 
-    return filtered.toSorted((a, b) => {
-      if (filters.sortByDueDate) {
-        return filters.sortDirection === 'asc'
-          ? compareLocalDates(fromIso(a.dueOn), fromIso(b.dueOn))
-          : compareLocalDates(fromIso(b.dueOn), fromIso(a.dueOn))
-      }
-
-      const indexA = a.index ?? Number.MAX_SAFE_INTEGER
-      const indexB = b.index ?? Number.MAX_SAFE_INTEGER
-      return indexA - indexB
-    })
-  }, [tasks, filters])
+    const indexA = a.index ?? Number.MAX_SAFE_INTEGER
+    const indexB = b.index ?? Number.MAX_SAFE_INTEGER
+    return indexA - indexB
+  })
 }

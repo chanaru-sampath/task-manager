@@ -1,4 +1,4 @@
-import { lazy, useMemo, useState } from 'react'
+import { lazy, useState } from 'react'
 
 import {
   DndContext,
@@ -68,17 +68,14 @@ function TaskList() {
 
   const todayDate = useState(() => today())[0]
 
-  const displayByTaskId = useMemo(() => {
-    const map = new Map<string, TaskDisplay>()
-    for (const task of filteredTasks) {
-      const d = fromIso(task.dueOn)
-      map.set(task.id, {
-        overdue: !task.completed && isBeforeLocalDate(d, todayDate),
-        display: formatRelative(d, todayDate),
-      })
-    }
-    return map
-  }, [filteredTasks, todayDate])
+  const displayByTaskId = new Map<string, TaskDisplay>()
+  for (const task of filteredTasks) {
+    const d = fromIso(task.dueOn)
+    displayByTaskId.set(task.id, {
+      overdue: !task.completed && isBeforeLocalDate(d, todayDate),
+      display: formatRelative(d, todayDate),
+    })
+  }
 
   const handleEdit = (task: Task) => {
     setEditingTask(task)
@@ -110,16 +107,13 @@ function TaskList() {
     if (!open) setDeletingTask(null)
   }
 
-  const deleteDescription = useMemo(() => {
-    if (!deletingTask) return null
-    return (
-      <>
-        Are you sure you want to delete &ldquo;
-        <span className="font-medium text-foreground">{deletingTask.title}</span>
-        &rdquo;? This action cannot be undone.
-      </>
-    )
-  }, [deletingTask])
+  const deleteDescription = deletingTask ? (
+    <>
+      Are you sure you want to delete &ldquo;
+      <span className="font-medium text-foreground">{deletingTask.title}</span>
+      &rdquo;? This action cannot be undone.
+    </>
+  ) : null
 
   const handleDragEnd = (event: DragEndEvent) => {
     if (!canReorder) {
@@ -146,7 +140,7 @@ function TaskList() {
     setShowReorderWarning(false)
   }
 
-  const taskIds = useMemo(() => filteredTasks.map((t) => t.id), [filteredTasks])
+  const taskIds = filteredTasks.map((t) => t.id)
 
   return (
     <>

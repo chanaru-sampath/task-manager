@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
@@ -27,14 +27,14 @@ interface TaskFormProps {
   editingTask?: Task | null
 }
 
+const TODAY_STRING = todayIso()
+
 function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
   const addTask = useTaskStore((s) => s.addTask)
   const updateTask = useTaskStore((s) => s.updateTask)
   const titleRef = useRef<HTMLInputElement>(null)
 
   const isEditing = !!editingTask
-
-  const resolver = useMemo(() => zodResolver(isEditing ? taskFormSchema : newTaskFormSchema), [isEditing])
 
   const {
     register,
@@ -43,15 +43,13 @@ function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
     reset,
     formState: { errors },
   } = useForm<TaskFormData>({
-    resolver,
+    resolver: zodResolver(isEditing ? taskFormSchema : newTaskFormSchema),
     defaultValues: {
       title: '',
       dueOn: '',
       priority: 'medium',
     },
   })
-
-  const todayString = useMemo(() => todayIso(), [])
 
   useEffect(() => {
     if (open) {
@@ -125,7 +123,7 @@ function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
             <Input
               id="task-due-date"
               type="date"
-              min={isEditing ? undefined : todayString}
+              min={isEditing ? undefined : TODAY_STRING}
               aria-invalid={!!errors.dueOn}
               aria-describedby={errors.dueOn ? 'task-due-date-error' : undefined}
               {...register('dueOn')}
