@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 
 import { Bar, BarChart, Cell, Pie, PieChart, XAxis, YAxis } from 'recharts'
 
@@ -39,7 +39,7 @@ const priorityChartConfig = {
   },
 } satisfies ChartConfig
 
-export const TaskStatistics = React.memo(function TaskStatistics() {
+function TaskStatistics() {
   const tasks = useTaskStore((s) => s.tasks)
 
   const { completionData, priorityData, totalTasks } = useMemo(() => {
@@ -83,7 +83,7 @@ export const TaskStatistics = React.memo(function TaskStatistics() {
           <CardDescription>Active vs Completed tasks</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={completionChartConfig} className="aspect-auto h-[180px] w-full">
+          <ChartContainer config={completionChartConfig} className="aspect-auto h-45 w-full">
             <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
               <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
               <Pie
@@ -111,7 +111,7 @@ export const TaskStatistics = React.memo(function TaskStatistics() {
           <CardDescription>Task count by priority level</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={priorityChartConfig} className="aspect-auto h-[180px] w-full">
+          <ChartContainer config={priorityChartConfig} className="aspect-auto h-45 w-full">
             <BarChart data={priorityData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <XAxis dataKey="name" stroke="var(--color-foreground)" tickLine={false} />
               <YAxis allowDecimals={false} stroke="var(--color-foreground)" />
@@ -127,4 +127,6 @@ export const TaskStatistics = React.memo(function TaskStatistics() {
       </Card>
     </div>
   )
-})
+}
+
+export default TaskStatistics

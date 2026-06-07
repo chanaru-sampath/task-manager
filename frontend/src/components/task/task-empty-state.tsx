@@ -4,7 +4,7 @@ interface TaskEmptyStateProps {
   hasFilters: boolean
 }
 
-export function TaskEmptyState({ hasFilters }: TaskEmptyStateProps) {
+function TaskEmptyState({ hasFilters }: TaskEmptyStateProps) {
   return (
     <div id="task-empty-state" className="flex flex-col items-center justify-center py-20 text-center">
       <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-muted">
@@ -21,3 +21,5 @@ export function TaskEmptyState({ hasFilters }: TaskEmptyStateProps) {
     </div>
   )
 }
+
+export default TaskEmptyState

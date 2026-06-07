@@ -4,7 +4,7 @@ import { render } from 'vitest-browser-react'
 import { useTaskStore } from '@/store/task-store'
 import type { Task } from '@/types'
 
-import { TaskStatistics } from '../task-statistics'
+import TaskStatistics from '../task-statistics'
 
 let nextIndex = 1
 function makeTask(overrides: Partial<Task> = {}): Task {

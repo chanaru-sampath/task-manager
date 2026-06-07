@@ -19,7 +19,7 @@ const PRIORITY_FILTER_OPTIONS = [
   { value: 'high', label: 'High' },
 ] as const
 
-export function TaskFilters() {
+function TaskFilters() {
   const filters = useTaskStore((s) => s.filters)
   const setFilter = useTaskStore((s) => s.setFilter)
   const resetFilters = useTaskStore((s) => s.resetFilters)
@@ -30,7 +30,7 @@ export function TaskFilters() {
     <div className="mb-2 sm:mb-0 flex flex-wrap items-center gap-2">
       {/* Status filter */}
       <Select value={filters.status} onValueChange={(v) => setFilter({ status: v as 'all' | 'completed' | 'active' })}>
-        <SelectTrigger id="filter-status" className="w-[140px]" aria-label="Filter by status">
+        <SelectTrigger id="filter-status" className="w-35" aria-label="Filter by status">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -44,7 +44,7 @@ export function TaskFilters() {
 
       {/* Priority filter */}
       <Select value={filters.priority} onValueChange={(v) => setFilter({ priority: v as Priority | 'all' })}>
-        <SelectTrigger id="filter-priority" className="w-[150px]" aria-label="Filter by priority">
+        <SelectTrigger id="filter-priority" className="w-37.5" aria-label="Filter by priority">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -114,3 +114,5 @@ export function TaskFilters() {
     </div>
   )
 }
+
+export default TaskFilters

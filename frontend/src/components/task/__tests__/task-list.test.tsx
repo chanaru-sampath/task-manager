@@ -7,7 +7,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { useTaskStore } from '@/store/task-store'
 import type { Task } from '@/types'
 
-import { TaskList } from '../task-list'
+import TaskList from '../task-list'
 
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },

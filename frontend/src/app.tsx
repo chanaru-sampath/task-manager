@@ -1,5 +1,5 @@
-import { Header } from '@/components/header'
-import { TaskList } from '@/components/task/task-list'
+import Header from '@/components/header'
+import TaskList from '@/components/task/task-list'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useThemeEffect } from '@/store/theme-store'

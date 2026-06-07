@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-react'
 
-import { ConfirmDialog } from '../confirm-dialog'
+import ConfirmDialog from '../confirm-dialog'
 
 describe('ConfirmDialog', () => {
   it('renders the title and description when open', async () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { render } from 'vitest-browser-react'
 
-import { VirtualizedList } from '../virtualize-list'
+import VirtualizedList from '../virtualize-list'
 
 interface Item {
   id: string

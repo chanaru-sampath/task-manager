@@ -12,7 +12,7 @@ interface VirtualizedListProps<T> {
   className?: string
 }
 
-export function VirtualizedList<T>({
+function VirtualizedList<T>({
   items,
   getItemKey,
   renderItem,
@@ -51,3 +51,5 @@ export function VirtualizedList<T>({
     </div>
   )
 }
+
+export default VirtualizedList

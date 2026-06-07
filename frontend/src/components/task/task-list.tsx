@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { lazy, useMemo, useState } from 'react'
 
 import {
   DndContext,
@@ -13,12 +13,11 @@ import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSo
 import { BarChart3, Info, Plus, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { ConfirmDialog } from '@/components/confirm-dialog'
-import { TaskEmptyState } from '@/components/task/task-empty-state'
-import { TaskFilters } from '@/components/task/task-filters'
-import { TaskForm } from '@/components/task/task-form'
-import { TaskItem } from '@/components/task/task-item'
-import { TaskStatistics } from '@/components/task/task-statistics'
+import ConfirmDialog from '@/components/confirm-dialog'
+import TaskEmptyState from '@/components/task/task-empty-state'
+import TaskFilters from '@/components/task/task-filters'
+import TaskForm from '@/components/task/task-form'
+import TaskItem from '@/components/task/task-item'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { useFilteredTasks } from '@/hooks/use-filtered-tasks'
@@ -26,7 +25,9 @@ import { formatRelative, fromIso, isBeforeLocalDate, today } from '@/lib/local-d
 import { useTaskStore } from '@/store/task-store'
 import type { Task } from '@/types'
 
-import { VirtualizedList } from '../virtualize-list'
+import VirtualizedList from '../virtualize-list'
+
+const TaskStatistics = lazy(() => import('@/components/task/task-statistics'))
 
 const ESTIMATED_ITEM_HEIGHT = 76 // Estimated height of each task card + gap
 
@@ -35,7 +36,7 @@ interface TaskDisplay {
   display: string
 }
 
-export function TaskList() {
+function TaskList() {
   const hasTasks = useTaskStore((s) => s.tasks.length > 0)
   const hasFilters = useTaskStore((s) => s.filters.status !== 'all' || s.filters.priority !== 'all')
 
@@ -98,16 +99,16 @@ export function TaskList() {
     setDeletingTask(task)
   }
 
-  const handleDeleteConfirm = useCallback(() => {
+  const handleDeleteConfirm = () => {
     if (!deletingTask) return
     deleteTask(deletingTask.id)
     toast.success('Task deleted')
     setDeletingTask(null)
-  }, [deletingTask, deleteTask])
+  }
 
-  const handleDeleteDialogChange = useCallback((open: boolean) => {
+  const handleDeleteDialogChange = (open: boolean) => {
     if (!open) setDeletingTask(null)
-  }, [])
+  }
 
   const deleteDescription = useMemo(() => {
     if (!deletingTask) return null
@@ -120,33 +121,30 @@ export function TaskList() {
     )
   }, [deletingTask])
 
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      if (!canReorder) {
-        setShowReorderWarning(true)
-        return
-      }
+  const handleDragEnd = (event: DragEndEvent) => {
+    if (!canReorder) {
+      setShowReorderWarning(true)
+      return
+    }
 
-      const { active, over } = event
+    const { active, over } = event
 
-      if (over && active.id !== over.id) {
-        const oldIndex = filteredTasks.findIndex((t) => t.id === active.id)
-        const newIndex = filteredTasks.findIndex((t) => t.id === over.id)
+    if (over && active.id !== over.id) {
+      const oldIndex = filteredTasks.findIndex((t) => t.id === active.id)
+      const newIndex = filteredTasks.findIndex((t) => t.id === over.id)
 
-        const newTasks = arrayMove(filteredTasks, oldIndex, newIndex)
-        const prevTask = newTasks[newIndex - 1]
-        const nextTask = newTasks[newIndex + 1]
+      const newTasks = arrayMove(filteredTasks, oldIndex, newIndex)
+      const prevTask = newTasks[newIndex - 1]
+      const nextTask = newTasks[newIndex + 1]
 
-        reorderTask(active.id as string, prevTask?.index ?? null, nextTask?.index ?? null)
-      }
-    },
-    [filteredTasks, reorderTask, canReorder]
-  )
+      reorderTask(active.id as string, prevTask?.index ?? null, nextTask?.index ?? null)
+    }
+  }
 
-  const handleResetAndReorder = useCallback(() => {
+  const handleResetAndReorder = () => {
     resetFilters()
     setShowReorderWarning(false)
-  }, [resetFilters])
+  }
 
   const taskIds = useMemo(() => filteredTasks.map((t) => t.id), [filteredTasks])
 
@@ -255,3 +253,5 @@ export function TaskList() {
     </>
   )
 }
+
+export default TaskList

@@ -5,7 +5,7 @@ import { page } from 'vitest/browser'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useTaskStore } from '@/store/task-store'
 
-import { TaskFilters } from '../task-filters'
+import TaskFilters from '../task-filters'
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return <TooltipProvider delayDuration={0}>{children}</TooltipProvider>

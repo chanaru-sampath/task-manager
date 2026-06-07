@@ -5,7 +5,7 @@ import { page } from 'vitest/browser'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useThemeStore } from '@/store/theme-store'
 
-import { ThemeToggle } from '../theme-toggle'
+import ThemeToggle from '../theme-toggle'
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return <TooltipProvider delayDuration={0}>{children}</TooltipProvider>

@@ -5,7 +5,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { useTaskStore } from '@/store/task-store'
 import type { Task } from '@/types'
 
-import { Header } from '../header'
+import Header from '../header'
 
 let nextIndex = 1
 function makeTask(overrides: Partial<Task> = {}): Task {
