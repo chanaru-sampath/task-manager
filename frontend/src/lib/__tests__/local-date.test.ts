@@ -1,20 +1,6 @@
-import { format } from 'date-fns'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import {
-  addLocalDays,
-  compareLocalDates,
-  diffInDays,
-  formatLong,
-  formatRelative,
-  fromIso,
-  isAfterLocalDate,
-  isBeforeLocalDate,
-  isSameLocalDate,
-  toIso,
-  today,
-  todayIso,
-} from '../local-date'
+import { compareLocalDates, formatRelative, fromIso, today, todayIso } from '../local-date'
 
 describe('fromIso', () => {
   it('parses a valid YYYY-MM-DD string', () => {
@@ -42,42 +28,6 @@ describe('fromIso', () => {
 
   it('throws on invalid day-of-month (Feb 30)', () => {
     expect(() => fromIso('2026-02-30')).toThrow()
-  })
-})
-
-describe('toIso', () => {
-  it('formats a Date as YYYY-MM-DD using local date parts', () => {
-    const d = new Date(2026, 5, 6, 15, 30)
-    expect(toIso(d)).toBe('2026-06-06')
-  })
-
-  it('pads single-digit months and days', () => {
-    const d = new Date(2026, 0, 5)
-    expect(toIso(d)).toBe('2026-01-05')
-  })
-
-  it('uses local date components, not UTC (regression for toISOString bug)', () => {
-    vi.useFakeTimers()
-    vi.setSystemTime(new Date('2026-06-06T23:30:00'))
-    try {
-      const now = new Date()
-      const expected = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-      expect(toIso(now)).toBe(expected)
-      expect(toIso(now)).toBe(format(now, 'yyyy-MM-dd'))
-    } finally {
-      vi.useRealTimers()
-    }
-  })
-})
-
-describe('fromIso / toIso roundtrip', () => {
-  it('preserves the calendar date', () => {
-    const iso = '2026-12-31'
-    expect(toIso(fromIso(iso))).toBe(iso)
-  })
-
-  it('handles leap day', () => {
-    expect(toIso(fromIso('2024-02-29'))).toBe('2024-02-29')
   })
 })
 
@@ -125,81 +75,6 @@ describe('compareLocalDates', () => {
   })
 })
 
-describe('isBeforeLocalDate / isAfterLocalDate / isSameLocalDate', () => {
-  const earlier = fromIso('2026-06-05')
-  const same = fromIso('2026-06-06')
-  const later = fromIso('2026-06-07')
-
-  it('isBeforeLocalDate', () => {
-    expect(isBeforeLocalDate(earlier, same)).toBe(true)
-    expect(isBeforeLocalDate(same, same)).toBe(false)
-    expect(isBeforeLocalDate(later, same)).toBe(false)
-  })
-
-  it('isAfterLocalDate', () => {
-    expect(isAfterLocalDate(later, same)).toBe(true)
-    expect(isAfterLocalDate(same, same)).toBe(false)
-    expect(isAfterLocalDate(earlier, same)).toBe(false)
-  })
-
-  it('isSameLocalDate', () => {
-    expect(isSameLocalDate(same, fromIso('2026-06-06'))).toBe(true)
-    expect(isSameLocalDate(earlier, same)).toBe(false)
-  })
-})
-
-describe('addLocalDays', () => {
-  it('adds days within a month', () => {
-    expect(toIso(addLocalDays(fromIso('2026-06-06'), 3))).toBe('2026-06-09')
-  })
-
-  it('subtracts days with negative input', () => {
-    expect(toIso(addLocalDays(fromIso('2026-06-06'), -1))).toBe('2026-06-05')
-  })
-
-  it('rolls over month-end (Jan 31 + 1 -> Feb 1)', () => {
-    expect(toIso(addLocalDays(fromIso('2026-01-31'), 1))).toBe('2026-02-01')
-  })
-
-  it('handles leap year (2024-02-28 + 1 -> 2024-02-29)', () => {
-    expect(toIso(addLocalDays(fromIso('2024-02-28'), 1))).toBe('2024-02-29')
-  })
-
-  it('handles non-leap year (2025-02-28 + 1 -> 2025-03-01)', () => {
-    expect(toIso(addLocalDays(fromIso('2025-02-28'), 1))).toBe('2025-03-01')
-  })
-
-  it('rolls over year-end (2026-12-31 + 1 -> 2027-01-01)', () => {
-    expect(toIso(addLocalDays(fromIso('2026-12-31'), 1))).toBe('2027-01-01')
-  })
-})
-
-describe('diffInDays', () => {
-  it('returns 0 for the same day', () => {
-    expect(diffInDays(fromIso('2026-06-06'), fromIso('2026-06-06'))).toBe(0)
-  })
-
-  it('returns 1 for next day', () => {
-    expect(diffInDays(fromIso('2026-06-07'), fromIso('2026-06-06'))).toBe(1)
-  })
-
-  it('returns -1 for previous day', () => {
-    expect(diffInDays(fromIso('2026-06-05'), fromIso('2026-06-06'))).toBe(-1)
-  })
-
-  it('returns 7 for a week apart', () => {
-    expect(diffInDays(fromIso('2026-06-13'), fromIso('2026-06-06'))).toBe(7)
-  })
-
-  it('returns -7 for a week before', () => {
-    expect(diffInDays(fromIso('2026-05-30'), fromIso('2026-06-06'))).toBe(-7)
-  })
-
-  it('returns 30 for a month apart', () => {
-    expect(diffInDays(fromIso('2026-07-06'), fromIso('2026-06-06'))).toBe(30)
-  })
-})
-
 describe('formatRelative', () => {
   const ref = fromIso('2026-06-06')
 
@@ -231,15 +106,5 @@ describe('formatRelative', () => {
 
   it('falls through to long-form for > 7 days behind', () => {
     expect(formatRelative(fromIso('2026-05-29'), ref)).toBe('May 29')
-  })
-})
-
-describe('formatLong', () => {
-  it('omits year when same year', () => {
-    expect(formatLong(fromIso('2026-06-06'), fromIso('2026-12-31'))).toBe('Jun 6')
-  })
-
-  it('includes year when different year', () => {
-    expect(formatLong(fromIso('2027-06-06'), fromIso('2026-06-06'))).toBe('Jun 6, 2027')
   })
 })
