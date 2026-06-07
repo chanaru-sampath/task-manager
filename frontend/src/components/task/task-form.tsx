@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
@@ -28,6 +28,8 @@ interface TaskFormProps {
   editingTask?: Task | null
 }
 
+const todayString = todayIso()
+
 function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
   const createTask = useCreateTask()
   const updateTask = useUpdateTask()
@@ -35,7 +37,7 @@ function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
 
   const isEditing = !!editingTask
 
-  const resolver = useMemo(() => zodResolver(isEditing ? taskFormSchema : newTaskFormSchema), [isEditing])
+  const resolver = zodResolver(isEditing ? taskFormSchema : newTaskFormSchema)
 
   const {
     register,
@@ -51,8 +53,6 @@ function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
       priority: 'medium',
     },
   })
-
-  const todayString = useMemo(() => todayIso(), [])
 
   useEffect(() => {
     if (open) {

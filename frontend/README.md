@@ -1,6 +1,6 @@
 # Task Manager — Frontend
 
-The single-page application for the Task Manager. Built with Vite, React 19, TypeScript, Tailwind CSS v4, and shadcn/ui. Task data is fetched and cached by TanStack Query; a small Zustand store holds the filter UI state, and the theme preference is persisted to `localStorage` to avoid a flash of wrong theme on reload.
+The single-page application for the Task Manager. Built with Vite, React 19, TypeScript, Tailwind CSS v4, and shadcn/ui. The [React Compiler](https://react.dev/learn/react-compiler) handles memoization automatically (no manual `useMemo` / `useCallback` / `React.memo`); task data is fetched and cached by TanStack Query; a small Zustand store holds the filter UI state; and the theme preference is persisted to `localStorage` to avoid a flash of wrong theme on reload.
 
 For the project-level overview (features, tech stack, getting started, architecture notes, branches), see the [root README](../README.md).
 
@@ -120,6 +120,7 @@ When a persisted store's shape changes, bump its `version` field and add a `migr
 - **Components** are exported as named functions; the only default export in the application is `App` from `app.tsx` (required by the React entry point in `main.tsx`).
 - **Forms** use `react-hook-form` with a Zod resolver from `@hookform/resolvers/zod`. Schemas live in `src/schemas/`.
 - **Dates** flow through `src/lib/local-date.ts`, which wraps `date-fns` so the rest of the app never imports `date-fns` directly. This keeps the date-handling surface small and easy to test.
+- **React Compiler** is enabled in `vite.config.ts` via `@vitejs/plugin-react`'s `reactCompilerPreset` (which wraps `babel-plugin-react-compiler`). It auto-memoizes component props, hook returns, and JSX, so the codebase intentionally avoids `useMemo`, `useCallback`, and `React.memo`. Write the natural code and let the compiler optimize re-renders.
 
 ## Build and Preview
 

@@ -1,5 +1,3 @@
-import { useMemo } from 'react'
-
 import { Bar, BarChart, Cell, Pie, PieChart, XAxis, YAxis } from 'recharts'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -42,35 +40,33 @@ const priorityChartConfig = {
 function TaskStatistics() {
   const tasks = useTasks().data ?? []
 
-  const { completionData, priorityData, totalTasks } = useMemo(() => {
-    let completedCount = 0
-    let activeCount = 0
-    let lowCount = 0
-    let mediumCount = 0
-    let highCount = 0
+  let completedCount = 0
+  let activeCount = 0
+  let lowCount = 0
+  let mediumCount = 0
+  let highCount = 0
 
-    for (const task of tasks) {
-      if (task.completed) completedCount++
-      else activeCount++
+  for (const task of tasks) {
+    if (task.completed) completedCount++
+    else activeCount++
 
-      if (task.priority === 'low') lowCount++
-      else if (task.priority === 'medium') mediumCount++
-      else if (task.priority === 'high') highCount++
-    }
+    if (task.priority === 'low') lowCount++
+    else if (task.priority === 'medium') mediumCount++
+    else if (task.priority === 'high') highCount++
+  }
 
-    const completionData = [
-      { name: 'active', value: activeCount, fill: 'var(--color-active)' },
-      { name: 'completed', value: completedCount, fill: 'var(--color-completed)' },
-    ]
+  const completionData = [
+    { name: 'active', value: activeCount, fill: 'var(--color-active)' },
+    { name: 'completed', value: completedCount, fill: 'var(--color-completed)' },
+  ]
 
-    const priorityData = [
-      { name: 'Low', value: lowCount, fill: 'var(--color-low)' },
-      { name: 'Medium', value: mediumCount, fill: 'var(--color-medium)' },
-      { name: 'High', value: highCount, fill: 'var(--color-high)' },
-    ]
+  const priorityData = [
+    { name: 'Low', value: lowCount, fill: 'var(--color-low)' },
+    { name: 'Medium', value: mediumCount, fill: 'var(--color-medium)' },
+    { name: 'High', value: highCount, fill: 'var(--color-high)' },
+  ]
 
-    return { completionData, priorityData, totalTasks: tasks.length }
-  }, [tasks])
+  const totalTasks = tasks.length
 
   if (totalTasks === 0) return null
 

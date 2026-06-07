@@ -1,4 +1,4 @@
-import { lazy, useCallback, useMemo, useState } from 'react'
+import { lazy, useState } from 'react'
 
 import {
   DndContext,
@@ -73,17 +73,14 @@ function TaskList() {
 
   const todayDate = useState(() => today())[0]
 
-  const displayByTaskId = useMemo(() => {
-    const map = new Map<string, TaskDisplay>()
-    for (const task of filteredTasks) {
-      const d = fromIso(task.dueOn)
-      map.set(task.id, {
-        overdue: !task.completed && isBeforeLocalDate(d, todayDate),
-        display: formatRelative(d, todayDate),
-      })
-    }
-    return map
-  }, [filteredTasks, todayDate])
+  const displayByTaskId = new Map<string, TaskDisplay>()
+  for (const task of filteredTasks) {
+    const d = fromIso(task.dueOn)
+    displayByTaskId.set(task.id, {
+      overdue: !task.completed && isBeforeLocalDate(d, todayDate),
+      display: formatRelative(d, todayDate),
+    })
+  }
 
   const handleEdit = (task: Task) => {
     setEditingTask(task)
@@ -104,76 +101,67 @@ function TaskList() {
     setDeletingTask(task)
   }
 
-  const handleDeleteConfirm = useCallback(() => {
+  const handleDeleteConfirm = () => {
     if (!deletingTask) return
     deleteTask.mutate(deletingTask.id, {
       onSuccess: () => toast.success('Task deleted'),
       onError: () => toast.error('Failed to delete task'),
     })
     setDeletingTask(null)
-  }, [deletingTask, deleteTask])
+  }
 
-  const handleDeleteDialogChange = useCallback((open: boolean) => {
+  const handleDeleteDialogChange = (open: boolean) => {
     if (!open) setDeletingTask(null)
-  }, [])
+  }
 
-  const deleteDescription = useMemo(() => {
-    if (!deletingTask) return null
-    return (
-      <>
-        Are you sure you want to delete &ldquo;
-        <span className="font-medium text-foreground">{deletingTask.title}</span>
-        &rdquo;? This action cannot be undone.
-      </>
+  const deleteDescription = deletingTask ? (
+    <>
+      Are you sure you want to delete &ldquo;
+      <span className="font-medium text-foreground">{deletingTask.title}</span>
+      &rdquo;? This action cannot be undone.
+    </>
+  ) : null
+
+  const handleToggleComplete = (id: string) => {
+    const task = tasks.find((t) => t.id === id)
+    if (!task) return
+    updateTask.mutate(
+      { id, completed: !task.completed },
+      {
+        onError: () => toast.error('Failed to update task'),
+      }
     )
-  }, [deletingTask])
+  }
 
-  const handleToggleComplete = useCallback(
-    (id: string) => {
-      const task = tasks.find((t) => t.id === id)
-      if (!task) return
-      updateTask.mutate(
-        { id, completed: !task.completed },
-        {
-          onError: () => toast.error('Failed to update task'),
-        }
-      )
-    },
-    [tasks, updateTask]
-  )
+  const handleDragEnd = (event: DragEndEvent) => {
+    if (!canReorder) {
+      setShowReorderWarning(true)
+      return
+    }
 
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      if (!canReorder) {
-        setShowReorderWarning(true)
-        return
-      }
+    const { active, over } = event
 
-      const { active, over } = event
+    if (over && active.id !== over.id) {
+      const oldIndex = filteredTasks.findIndex((t) => t.id === active.id)
+      const newIndex = filteredTasks.findIndex((t) => t.id === over.id)
 
-      if (over && active.id !== over.id) {
-        const oldIndex = filteredTasks.findIndex((t) => t.id === active.id)
-        const newIndex = filteredTasks.findIndex((t) => t.id === over.id)
+      const newTasks = arrayMove(filteredTasks, oldIndex, newIndex)
+      const prevTask = newTasks[newIndex - 1]
+      const nextTask = newTasks[newIndex + 1]
 
-        const newTasks = arrayMove(filteredTasks, oldIndex, newIndex)
-        const prevTask = newTasks[newIndex - 1]
-        const nextTask = newTasks[newIndex + 1]
+      reorderTask.mutate({
+        id: active.id as string,
+        index: generateKeyBetween(prevTask?.index ?? null, nextTask?.index ?? null),
+      })
+    }
+  }
 
-        reorderTask.mutate({
-          id: active.id as string,
-          index: generateKeyBetween(prevTask?.index ?? null, nextTask?.index ?? null),
-        })
-      }
-    },
-    [filteredTasks, reorderTask, canReorder]
-  )
-
-  const handleResetAndReorder = useCallback(() => {
+  const handleResetAndReorder = () => {
     resetFilters()
     setShowReorderWarning(false)
-  }, [resetFilters])
+  }
 
-  const taskIds = useMemo(() => filteredTasks.map((t) => t.id), [filteredTasks])
+  const taskIds = filteredTasks.map((t) => t.id)
 
   return (
     <>

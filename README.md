@@ -22,6 +22,7 @@ A polished, persistent task tracker built as a Vite + React 19 single-page app b
 **Frontend** (`frontend/`)
 
 - React 19, TypeScript, Vite 8
+- [React Compiler](https://react.dev/learn/react-compiler) (`babel-plugin-react-compiler` via `@vitejs/plugin-react`'s `reactCompilerPreset`) for automatic memoization — no manual `useMemo` / `useCallback` / `React.memo` needed
 - TanStack Query for server-state cache, optimistic updates, and request lifecycle
 - Zod for form validation (shared shape with the backend)
 - Tailwind CSS v4, shadcn/ui primitives, lucide-react icons
@@ -211,6 +212,7 @@ Validation errors return `400 { error, fieldErrors }`. Missing resources return 
 - **Theme no-FOUC**: an inline script in `frontend/index.html` reads the persisted theme from `localStorage` before the first paint.
 - **Virtualized list**: the task list is rendered through `components/virtualize-list.tsx` using `@tanstack/react-virtual`, capped at `60vh` so the page stays responsive with large lists.
 - **Manual chunks**: `vite.config.ts` splits `recharts` into its own chunk so the heavy charting library does not bloat the initial vendor bundle.
+- **React Compiler**: enabled in `vite.config.ts` through `@vitejs/plugin-react`'s `reactCompilerPreset`. The compiler handles memoization of props, hook returns, and JSX, so the codebase intentionally avoids `useMemo`, `useCallback`, and `React.memo`. Write the natural code and let the compiler do the work.
 - **File conventions** (enforced by ESLint):
   - Filenames in `src/` are `kebab-case` (e.g. `task-list.tsx`, `task-form.tsx`).
   - Folders under `src/` (except `__tests__`) follow Next.js-app-router casing (e.g. `task/`, `ui/`, `lib/`).
