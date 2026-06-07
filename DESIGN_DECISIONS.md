@@ -352,4 +352,4 @@
 
 ## What I'd revisit
 
-- **End-to-end coverage is currently thin.** Unit and component tests in `__tests__/` are solid, but the `frontend/e2e/` folder is empty — there's no Playwright spec exercising the full add → reorder → complete → delete flow across browsers. I'd add a small smoke suite there as the next step.
+- **End-to-end coverage is currently thin.** Unit and component tests in `__tests__/` are solid, but no e2e testing — there's no Playwright spec exercising the full add → reorder → complete → delete flow across browsers. I'd add a small smoke suite there as the next step.
