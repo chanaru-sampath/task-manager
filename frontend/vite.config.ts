@@ -36,6 +36,8 @@ export default defineConfig({
     },
   },
   build: {
+    minify: true,
+    cssMinify: true,
     rollupOptions: {
       output: {
         manualChunks(id) {

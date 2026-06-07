@@ -20,12 +20,11 @@ import TaskForm from '@/components/task/task-form'
 import TaskItem from '@/components/task/task-item'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
+import VirtualizedList from '@/components/virtualize-list'
 import { useFilteredTasks } from '@/hooks/use-filtered-tasks'
 import { formatRelative, fromIso, isBeforeLocalDate, today } from '@/lib/local-date'
 import { useTaskStore } from '@/store/task-store'
 import type { Task } from '@/types'
-
-import VirtualizedList from '../virtualize-list'
 
 const TaskStatistics = lazy(() => import('@/components/task/task-statistics'))
 
