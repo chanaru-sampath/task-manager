@@ -26,8 +26,6 @@ export function useFilteredTasks(): Task[] {
         : compareLocalDates(fromIso(b.dueOn), fromIso(a.dueOn))
     }
 
-    const indexA = a.index ?? Number.MAX_SAFE_INTEGER
-    const indexB = b.index ?? Number.MAX_SAFE_INTEGER
-    return indexA - indexB
+    return a.index - b.index
   })
 }
