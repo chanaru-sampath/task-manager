@@ -22,15 +22,15 @@ interface TaskItemProps {
 
 const PRIORITY_CONFIG = {
   low: {
-    label: 'Low',
+    label: 'Low Priority',
     className: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
   },
   medium: {
-    label: 'Medium',
+    label: 'Medium Priority',
     className: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
   },
   high: {
-    label: 'High',
+    label: 'High Priority',
     className: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20',
   },
 } as const
