@@ -1,6 +1,6 @@
 # Task Manager — Frontend
 
-The single-page application for the Task Manager. Built with Vite, React 19, TypeScript, Tailwind CSS v4, and shadcn/ui. State is held in Zustand stores that persist to `localStorage`.
+The single-page application for the Task Manager. Built with Vite, React 19, TypeScript, Tailwind CSS v4, and shadcn/ui. Memoization is handled automatically by the [React Compiler](https://react.dev/learn/react-compiler) (see [React Compiler](#react-compiler) below). State is held in Zustand stores that persist to `localStorage`.
 
 For the project-level overview (features, tech stack, getting started, architecture notes, branches), see the [root README](../README.md).
 
@@ -118,6 +118,31 @@ When the persisted shape changes, bump the `version` field in the corresponding 
 - **Components** are exported as named functions; the only default export in the application is `App` from `app.tsx` (required by the React entry point in `main.tsx`).
 - **Forms** use `react-hook-form` with a Zod resolver from `@hookform/resolvers/zod`. Schemas live in `src/schemas/`.
 - **Dates** flow through `src/lib/local-date.ts`, which wraps `date-fns` so the rest of the app never imports `date-fns` directly. This keeps the date-handling surface small and easy to test.
+- **Memoization**: do **not** use `useMemo`, `useCallback`, or `React.memo` in application code. The [React Compiler](#react-compiler) handles memoization. For values that are genuinely constant for the module lifetime (e.g. `todayIso()`), declare a module-level `const` instead of `useMemo(..., [])`.
+
+## React Compiler
+
+This project uses the [React Compiler](https://react.dev/learn/react-compiler) to auto-memoize components and hooks. It is enabled through `babel-plugin-react-compiler` in `vite.config.ts`:
+
+```ts
+import babel from '@rolldown/plugin-babel'
+import react, { reactCompilerPreset } from '@vitejs/plugin-react'
+
+plugins: [react(), babel({ presets: [reactCompilerPreset()] })]
+```
+
+Because the compiler handles memoization, the application code intentionally does **not** use:
+
+- `useMemo` / `useCallback` — the compiler memoizes hook output and components based on referential inputs.
+- `React.memo` / `memo()` — the compiler performs the equivalent skipping of re-renders automatically.
+
+If you need a value to be stable for the entire lifetime of the module (e.g. the current ISO date used as the minimum value of a date input), declare it as a module-level `const` rather than a `useMemo(..., [])`:
+
+```ts
+const TODAY_STRING = todayIso() // computed once at module load
+```
+
+Files in `src/components/ui/` (shadcn/ui-generated) may still contain `useMemo` calls. Leave them alone unless the component is being meaningfully customized — a `shadcn add` run can overwrite manual edits.
 
 ## Build and Preview
 
