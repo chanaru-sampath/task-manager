@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { lazy, useCallback, useMemo, useState } from 'react'
 
 import {
   DndContext,
@@ -13,14 +13,14 @@ import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSo
 import { BarChart3, Info, Plus, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { ConfirmDialog } from '@/components/confirm-dialog'
-import { TaskEmptyState } from '@/components/task/task-empty-state'
-import { TaskFilters } from '@/components/task/task-filters'
-import { TaskForm } from '@/components/task/task-form'
-import { TaskItem } from '@/components/task/task-item'
-import { TaskStatistics } from '@/components/task/task-statistics'
+import ConfirmDialog from '@/components/confirm-dialog'
+import TaskEmptyState from '@/components/task/task-empty-state'
+import TaskFilters from '@/components/task/task-filters'
+import TaskForm from '@/components/task/task-form'
+import TaskItem from '@/components/task/task-item'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
+import VirtualizedList from '@/components/virtualize-list'
 import { useFilteredTasks } from '@/hooks/use-filtered-tasks'
 import { useDeleteTask, useReorderTask, useTasks, useUpdateTask } from '@/hooks/use-tasks'
 import { generateKeyBetween } from '@/lib/indexing'
@@ -28,7 +28,7 @@ import { formatRelative, fromIso, isBeforeLocalDate, today } from '@/lib/local-d
 import { useTaskFilterStore } from '@/store/task-filter-store'
 import type { Task } from '@/types'
 
-import { VirtualizedList } from '../virtualize-list'
+const TaskStatistics = lazy(() => import('@/components/task/task-statistics'))
 
 const ESTIMATED_ITEM_HEIGHT = 76 // Estimated height of each task card + gap
 
@@ -37,7 +37,7 @@ interface TaskDisplay {
   display: string
 }
 
-export function TaskList() {
+function TaskList() {
   const tasksQuery = useTasks()
   const tasks = tasksQuery.data ?? []
 
@@ -290,3 +290,5 @@ export function TaskList() {
     </>
   )
 }
+
+export default TaskList

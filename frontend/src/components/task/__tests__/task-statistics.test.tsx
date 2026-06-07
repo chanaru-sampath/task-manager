@@ -4,7 +4,7 @@ import { render } from 'vitest-browser-react'
 
 import type { Task } from '@/types'
 
-import { TaskStatistics } from '../task-statistics'
+import TaskStatistics from '../task-statistics'
 
 const mockUseTasks = vi.fn()
 

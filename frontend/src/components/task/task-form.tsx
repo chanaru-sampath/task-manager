@@ -28,7 +28,7 @@ interface TaskFormProps {
   editingTask?: Task | null
 }
 
-export function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
+function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
   const createTask = useCreateTask()
   const updateTask = useUpdateTask()
   const titleRef = useRef<HTMLInputElement>(null)
@@ -188,3 +188,5 @@ export function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
     </Dialog>
   )
 }
+
+export default TaskForm

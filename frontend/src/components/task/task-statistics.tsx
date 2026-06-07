@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 
 import { Bar, BarChart, Cell, Pie, PieChart, XAxis, YAxis } from 'recharts'
 
@@ -39,7 +39,7 @@ const priorityChartConfig = {
   },
 } satisfies ChartConfig
 
-export const TaskStatistics = React.memo(function TaskStatistics() {
+function TaskStatistics() {
   const tasks = useTasks().data ?? []
 
   const { completionData, priorityData, totalTasks } = useMemo(() => {
@@ -127,4 +127,6 @@ export const TaskStatistics = React.memo(function TaskStatistics() {
       </Card>
     </div>
   )
-})
+}
+
+export default TaskStatistics

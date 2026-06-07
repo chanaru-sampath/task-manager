@@ -7,7 +7,7 @@ import { page } from 'vitest/browser'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import type { Task } from '@/types'
 
-import { TaskList } from '../task-list'
+import TaskList from '../task-list'
 
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },

@@ -6,7 +6,7 @@ import { page } from 'vitest/browser'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import type { Task } from '@/types'
 
-import { TaskItem } from '../task-item'
+import TaskItem from '../task-item'
 
 let nextIndex = 1
 function makeTask(overrides: Partial<Task> = {}): Task {

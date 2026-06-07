@@ -19,7 +19,7 @@ const PRIORITY_FILTER_OPTIONS = [
   { value: 'high', label: 'High' },
 ] as const
 
-export function TaskFilters() {
+function TaskFilters() {
   const filters = useTaskFilterStore((s) => s.filters)
   const setFilter = useTaskFilterStore((s) => s.setFilter)
   const resetFilters = useTaskFilterStore((s) => s.resetFilters)
@@ -114,3 +114,5 @@ export function TaskFilters() {
     </div>
   )
 }
+
+export default TaskFilters

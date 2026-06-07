@@ -5,7 +5,7 @@ import { render } from 'vitest-browser-react'
 
 import type { Task } from '@/types'
 
-import { TaskForm } from '../task-form'
+import TaskForm from '../task-form'
 
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },

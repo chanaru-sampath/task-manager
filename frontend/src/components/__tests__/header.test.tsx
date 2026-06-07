@@ -5,7 +5,7 @@ import { render } from 'vitest-browser-react'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import type { Task } from '@/types'
 
-import { Header } from '../header'
+import Header from '../header'
 
 const mockUseTasks = vi.fn()
 

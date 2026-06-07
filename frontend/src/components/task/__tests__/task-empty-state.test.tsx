@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { render } from 'vitest-browser-react'
 
-import { TaskEmptyState } from '../task-empty-state'
+import TaskEmptyState from '../task-empty-state'
 
 describe('TaskEmptyState', () => {
   it('renders the empty-state wrapper with a stable id', async () => {

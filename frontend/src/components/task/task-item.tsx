@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Calendar, GripVertical, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
@@ -37,15 +35,7 @@ const PRIORITY_CONFIG = {
   },
 } as const
 
-export const TaskItem = React.memo(function TaskItem({
-  task,
-  onEdit,
-  onToggle,
-  onDeleteRequest,
-  overdue,
-  displayDate,
-  isManualSort,
-}: TaskItemProps) {
+function TaskItem({ task, onEdit, onToggle, onDeleteRequest, overdue, displayDate, isManualSort }: TaskItemProps) {
   const priorityConfig = PRIORITY_CONFIG[task.priority]
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -149,4 +139,6 @@ export const TaskItem = React.memo(function TaskItem({
       </div>
     </div>
   )
-})
+}
+
+export default TaskItem

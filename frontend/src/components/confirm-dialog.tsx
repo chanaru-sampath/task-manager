@@ -23,7 +23,7 @@ interface ConfirmDialogProps {
   cancelButtonId?: string
 }
 
-export function ConfirmDialog({
+function ConfirmDialog({
   open,
   onOpenChange,
   title,
@@ -59,3 +59,5 @@ export function ConfirmDialog({
     </Dialog>
   )
 }
+
+export default ConfirmDialog
