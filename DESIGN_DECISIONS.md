@@ -384,3 +384,4 @@
 ## What I'd revisit
 
 - **End-to-end coverage is currently thin.** Unit and component tests in `__tests__/` are solid, but no e2e testing — there's no Playwright spec exercising the full add → reorder → complete → delete flow across browsers. I'd add a small smoke suite there as the next step.
+- **Docker deployment** The app has no containerization; setup requires manual Node/pnpm install and two terminals. I'd add a single Dockerfile and docker-compose.yml so it deploys anywhere (VPS, Railway, Fly.io) with docker compose up. The approach: multi-stage build (frontend → vite build, backend → tsup bundle), backend serves the built frontend as static files via express.static, and a persistent volume keeps SQLite data across restarts.
