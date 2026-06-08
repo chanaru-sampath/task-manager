@@ -2,7 +2,7 @@ export type Priority = 'low' | 'medium' | 'high'
 
 type SortDirection = 'asc' | 'desc'
 
-export interface Task {
+export type Task = {
   id: string
   title: string
   dueOn: string // Date string (YYYY-MM-DD)
@@ -11,7 +11,7 @@ export interface Task {
   index: number // Float index for drag-and-drop ordering
 }
 
-export interface TaskFilters {
+export type TaskFilters = {
   status: 'all' | 'completed' | 'active'
   priority: Priority | 'all'
   sortByDueDate: boolean // false = natural index order (allows reorder), true = sorted by due date

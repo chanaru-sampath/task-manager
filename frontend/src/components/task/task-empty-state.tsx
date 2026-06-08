@@ -1,6 +1,6 @@
 import { ClipboardList } from 'lucide-react'
 
-interface TaskEmptyStateProps {
+type TaskEmptyStateProps = {
   hasFilters: boolean
 }
 

@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
-interface ConfirmDialogProps {
+type ConfirmDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   title: string

@@ -22,7 +22,7 @@ import { type TaskFormData, newTaskFormSchema, taskFormSchema } from '@/schemas/
 import { PRIORITY_OPTIONS } from '@/store/task-filter-store'
 import type { Task } from '@/types'
 
-interface TaskFormProps {
+type TaskFormProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   editingTask?: Task | null

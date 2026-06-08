@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 import type { Priority, TaskFilters } from '@/types'
 
-interface TaskFilterStore {
+type TaskFilterStore = {
   filters: TaskFilters
   setFilter: (filter: Partial<TaskFilters>) => void
   resetFilters: () => void

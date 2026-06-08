@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { cn } from '@/lib/utils'
 import type { Task } from '@/types'
 
-interface TaskItemProps {
+type TaskItemProps = {
   task: Task
   onEdit: (task: Task) => void
   onToggle: (id: string) => void
