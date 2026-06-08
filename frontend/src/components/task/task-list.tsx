@@ -65,7 +65,7 @@ function TaskList() {
     })
   )
 
-  const todayDate = useState(() => today())[0]
+  const todayDate = today()
 
   const displayByTaskId = new Map<string, TaskDisplay>()
   for (const task of filteredTasks) {

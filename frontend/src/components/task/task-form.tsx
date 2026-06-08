@@ -27,12 +27,11 @@ type TaskFormProps = {
   editingTask?: Task | null
 }
 
-const TODAY_STRING = todayIso()
-
 function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
   const addTask = useTaskStore((s) => s.addTask)
   const updateTask = useTaskStore((s) => s.updateTask)
   const titleRef = useRef<HTMLInputElement>(null)
+  const todayString = todayIso()
 
   const isEditing = !!editingTask
 
@@ -123,7 +122,7 @@ function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
             <Input
               id="task-due-date"
               type="date"
-              min={isEditing ? undefined : TODAY_STRING}
+              min={isEditing ? undefined : todayString}
               aria-invalid={!!errors.dueOn}
               aria-describedby={errors.dueOn ? 'task-due-date-error' : undefined}
               {...register('dueOn')}
