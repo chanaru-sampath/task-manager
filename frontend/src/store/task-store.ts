@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware'
 import { generateKeyBetween } from '@/lib/indexing'
 import type { Priority, Task, TaskFilters } from '@/types'
 
-interface TaskStore {
+type TaskStore = {
   tasks: Task[]
   filters: TaskFilters
 

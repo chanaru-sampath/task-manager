@@ -5,7 +5,7 @@ import { persist } from 'zustand/middleware'
 
 type Theme = 'light' | 'dark' | 'system'
 
-interface ThemeStore {
+type ThemeStore = {
   theme: Theme
   setTheme: (theme: Theme) => void
 }

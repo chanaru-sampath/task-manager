@@ -30,7 +30,7 @@ const TaskStatistics = lazy(() => import('@/components/task/task-statistics'))
 
 const ESTIMATED_ITEM_HEIGHT = 76 // Estimated height of each task card + gap
 
-interface TaskDisplay {
+type TaskDisplay = {
   overdue: boolean
   display: string
 }

@@ -3,7 +3,7 @@ import { render } from 'vitest-browser-react'
 
 import VirtualizedList from '../virtualize-list'
 
-interface Item {
+type Item = {
   id: string
   label: string
 }

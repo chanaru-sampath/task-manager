@@ -2,7 +2,7 @@ import { useRef } from 'react'
 
 import { useVirtualizer } from '@tanstack/react-virtual'
 
-interface VirtualizedListProps<T> {
+type VirtualizedListProps<T> = {
   items: T[]
   getItemKey: (item: T) => string | number
   renderItem: (item: T, index: number) => React.ReactNode
