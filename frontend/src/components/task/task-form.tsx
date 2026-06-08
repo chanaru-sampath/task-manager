@@ -28,12 +28,11 @@ type TaskFormProps = {
   editingTask?: Task | null
 }
 
-const todayString = todayIso()
-
 function TaskForm({ open, onOpenChange, editingTask }: TaskFormProps) {
   const createTask = useCreateTask()
   const updateTask = useUpdateTask()
   const titleRef = useRef<HTMLInputElement>(null)
+  const todayString = todayIso()
 
   const isEditing = !!editingTask
 

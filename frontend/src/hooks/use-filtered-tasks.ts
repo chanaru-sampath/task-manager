@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+
 import { useTasks } from '@/hooks/use-tasks'
 import { compareLocalDates, fromIso } from '@/lib/local-date'
 import { useTaskFilterStore } from '@/store/task-filter-store'
@@ -13,21 +15,23 @@ export function useFilteredTasks(): Task[] {
   const tasks = tasksQuery.data ?? []
   const filters = useTaskFilterStore((s) => s.filters)
 
-  const filtered: Task[] = []
-  for (const t of tasks) {
-    if (filters.status === 'completed' && !t.completed) continue
-    if (filters.status === 'active' && t.completed) continue
-    if (filters.priority !== 'all' && t.priority !== filters.priority) continue
-    filtered.push(t)
-  }
-
-  return filtered.toSorted((a, b) => {
-    if (filters.sortByDueDate) {
-      return filters.sortDirection === 'asc'
-        ? compareLocalDates(fromIso(a.dueOn), fromIso(b.dueOn))
-        : compareLocalDates(fromIso(b.dueOn), fromIso(a.dueOn))
+  return useMemo(() => {
+    const filtered: Task[] = []
+    for (const t of tasks) {
+      if (filters.status === 'completed' && !t.completed) continue
+      if (filters.status === 'active' && t.completed) continue
+      if (filters.priority !== 'all' && t.priority !== filters.priority) continue
+      filtered.push(t)
     }
 
-    return a.index - b.index
-  })
+    return filtered.toSorted((a, b) => {
+      if (filters.sortByDueDate) {
+        return filters.sortDirection === 'asc'
+          ? compareLocalDates(fromIso(a.dueOn), fromIso(b.dueOn))
+          : compareLocalDates(fromIso(b.dueOn), fromIso(a.dueOn))
+      }
+
+      return a.index - b.index
+    })
+  }, [filters, tasks])
 }
